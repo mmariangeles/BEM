@@ -100,10 +100,12 @@ DA_cantidad_SE_BEM_anioanterior <- diarreas %>%
 DA_variacion_porcentual <- 
   round((DA_cantidad_SE_BEM - DA_cantidad_SE_BEM_anioanterior)/DA_cantidad_SE_BEM_anioanterior*100,1)
 
-
+#SET INDICADORES--------
 # Esto es para que no tenga puntos el numero
 DA_cantidad_SE_BEM <- gsub("\\.", "", as.character(DA_cantidad_SE_BEM))
 
+# Convertir el valor numérico de la variación a texto con el signo %
+DA_variacion_porcentual_texto <- paste0(DA_variacion_porcentual, "%")
 
 #  Crear el diseño del recuadro
 recuadro_diarreas <- ggplot() +
@@ -119,7 +121,7 @@ recuadro_diarreas <- ggplot() +
   annotate("text", x = 0.5, y = 0.495, label = DA_cantidad_SE_BEM, size = 10, fontface = "bold", color = "#FF4F00") +
   # Variación porcentual en la banda inferior
   annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 4, fontface = "bold", color = "#FF6F31", hjust = 0) +
-  annotate("text", x = 0.9, y = 0.165, label = DA_variacion_porcentual, size = 4, fontface = "bold", color = "#FF6F31", hjust = 1) +
+  annotate("text", x = 0.9, y = 0.165, label = DA_variacion_porcentual_texto, size = 4, fontface = "bold", color = "#FF6F31", hjust = 1) +
   theme_void()
 
 recuadro_diarreas
