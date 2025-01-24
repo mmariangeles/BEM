@@ -20,9 +20,8 @@ library(gridExtra)
   
   #selecciono hasta la SE de mi BEM
   agrupada <- agrupada %>%
-    filter(ANIO <= 2024 & SEMANA <= 53)
-  
-
+    filter(ANIO <= 2024 & SEMANA <= 53)#acá hay que cambiar el año! 
+     }
 
 
 #agrego columna region----
@@ -33,8 +32,6 @@ library(gridExtra)
   
   
   #cruzo base de datos (es como un buscar V en excel)
-  ?left_join
-  
   regiones_duplicadas <- regiones %>% #esto lo hago porque habia duplicados que agregaban observaciones a "agrupadas"
     group_by(LOCALIDAD) %>%
     filter(n() > 1)
@@ -63,9 +60,6 @@ library(gridExtra)
   
   ANIO_max <- as.numeric(ANIO_max[[1]])  # Extrae la primera columna y lo convierte a numérico
   
-  
-  view(ANIO_max)
-  
   #SE_min 
   SE_min <- SE_BEM %>%
     min()
@@ -79,7 +73,7 @@ library(gridExtra)
 #Lesiones en el hogar---------
   lesiones_hogar <- agrupada %>% 
     filter(IDEVENTOAGRUPADO==116) %>% 
-    filter((ANIO > 2023) | (ANIO == 2023 & SEMANA >= 21))
+    filter((ANIO > 2023) | (ANIO == 2023 & SEMANA >= 21)) 
   
   #Cantidad segun SE BEM
   lesiones_hogar_SE_BEM <- lesiones_hogar %>%
@@ -91,67 +85,95 @@ library(gridExtra)
 lesiones_eventos <- lesiones_hogar %>%
       filter(SEMANA %in% SE_BEM,                                     # Filtrar por el valor de SE_BEM
         ANIO == ANIO_max) %>%                     # Filtrar por el año máximo
-     group_by(NOMBREEVENTOAGRP) %>%                     # Agrupar por los eventos
+     group_by(NOMBREEVENTOAGRP, ID_SNVS_EVENTO_AGRP) %>%                     # Agrupar por los eventos
       summarize(
         Total = sum(CANTIDAD, na.rm = TRUE),                # Calcular el total
         .groups = "drop")
-    
-#contruccion del indicador ----   
-    # Datos simulados
-    indicadores <- data.frame(
-      Categoria = c("Caídas y golpes", "Cortes y quemaduras", "Sin especificar", "Lesiones por electrocución", "Ahogamiento por inmersión", "Otras"),
-      Valor = c(lesiones_total))
-    
-    # Función para crear recuadros con centro claro
-    crear_recuadro <- function(categoria, valor, variacion, color_fondo, color_numero) {
-      # Dividir el texto del título en dos líneas si es demasiado largo
-      titulo_wrapped <- stringr::str_wrap(categoria, width = 20)
-      
-      ggplot() +
-        # Fondo del recuadro
-        annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo, alpha = 0.9) +
-        # Centro más claro
-        annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-        # Título en dos líneas, más pequeño
-        annotate("text", x = 0.5, y = 0.9, label = titulo_wrapped, size = 4, fontface = "bold", color = "white", lineheight = 0.8) +
-        # Número en el centro
-        annotate("text", x = 0.5, y = 0.5, label = format(valor, big.mark = ","), size = 8, fontface = "bold", color = color_numero) +
-        # Nota de variación
-        annotate("text", x = 0.5, y = 0.15, label = paste("Variación:", variacion, "%"), size = 3.5, color = "white") +
-        theme_void()
-    
-    # Recuadro superior con centro más claro
-    recuadro_superior <- ggplot() +
-      # Fondo del recuadro
-      annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#4286f5",  alpha = 0.9) +
-      # Centro más claro
-      annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-      # Texto del título
-      annotate("text", x = 0.5, y = 0.8, label = "Internaciones por lesiones en el hogar", size = 5, fontface = "bold", color = "white") +
-      # Número en el centro
-      annotate("text", x = 0.5, y = 0.5, label = "30,000", size = 10, fontface = "bold", color = "#003366") +
-      theme_void()
-    
-    # Crear gráficos para los indicadores secundarios
-    graficos <- list(
-      crear_recuadro("Caídas y golpes", 24217, 29.2, "#4286f5", "#003366"),
-      crear_recuadro("Cortes y quemaduras", 1747, 31.5, "#4286f5", "#003366"),
-      crear_recuadro("Sin especificar", 377, 41.7, "#4286f5", "#003366"),
-      crear_recuadro("Lesiones por electrocución", 1300, 15.3, "#4286f5", "#003366"),
-      crear_recuadro("Ahogamiento por inmersión", 1300, 15.3, "#4286f5", "#003366"),
-      crear_recuadro("Otras", 1300, 15.3, "#4286f5", "#003366"),
-      )
   
-    
-    # Organizar el recuadro superior y los indicadores secundarios
-    botonera_1 <- grid.arrange(
-      recuadro_superior, 
-      arrangeGrob(grobs = graficos, ncol = 6), #columnas en las que se organizan los graf abajo
-      heights = c(1, 2) 
-      # Ajusta la proporción de alturas
+#MUY IMPORTANTE esta tabla porque se define los eventos que se muestran en el set de indicadores
+  #"si hay alguno nuevo" hay que hacer los objetos y demás tal como está en las lineas siguientes
+  
+  
+  
+  # Calcular los totales para cada categoría
+  caidas_golpes <- lesiones_eventos %>% 
+    filter(ID_SNVS_EVENTO_AGRP == 501) %>% 
+    summarise(Total = sum(Total)) %>% 
+    pull(Total)
+  
+  cortes_quemaduras <- lesiones_eventos %>% 
+    filter(ID_SNVS_EVENTO_AGRP == 505) %>% 
+    summarise(Total = sum(Total)) %>% 
+    pull(Total)
+  
+  sin_especificar <- lesiones_eventos %>% 
+    filter(ID_SNVS_EVENTO_AGRP == 510) %>% 
+    summarise(Total = sum(Total)) %>% 
+    pull(Total)
+  
+  electrocusion <- lesiones_eventos %>% 
+    filter(ID_SNVS_EVENTO_AGRP == 504) %>% 
+    summarise(Total = sum(Total)) %>% 
+    pull(Total)
+  
+  # ahogamiento <- lesiones_eventos %>% 
+  #   filter(ID_SNVS_EVENTO_AGRP == 506) %>% 
+  #   summarise(Total = sum(Total)) %>% 
+  #   pull(Total)
+  
+  otras <- lesiones_eventos %>% 
+    filter(ID_SNVS_EVENTO_AGRP == 511) %>% 
+    summarise(Total = sum(Total)) %>% 
+    pull(Total)
+  
+  # Crear el dataframe indicadores
+  indicadores <- data.frame(
+    Categoria = c("Caídas y golpes", "Cortes y quemaduras", "Sin especificar", 
+                  "Lesiones por electrocución", "Otras"),
+    Valor = c(caidas_golpes, cortes_quemaduras, sin_especificar, electrocusion, otras)
+  )
+  
+  # Función para crear recuadros
+  crear_recuadro <- function(categoria, valor, color_fondo, color_numero) {
+    ggplot() +
+      annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo, alpha = 0.9) +
+      annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
+      annotate("text", x = 0.5, y = 0.8, label = categoria, size = 4, fontface = "bold", color = "white") +
+      annotate("text", x = 0.5, y = 0.5, label = valor, size = 8, fontface = "bold", color = color_numero) +
+      theme_void()
+  }
+  
+  # Recuadro superior
+  recuadro_superior <- ggplot() +
+    annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#4286f5", alpha = 0.9) +
+    annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
+    annotate("text", x = 0.5, y = 0.8, label = "Internaciones por lesiones en el hogar", 
+             size = 5, fontface = "bold", color = "white") +
+    annotate("text", x = 0.5, y = 0.5, label = sum(indicadores$Valor), 
+             size = 10, fontface = "bold", color = "#003366") +
+    theme_void()
+  
+  # Crear gráficos individuales
+  graficos <- lapply(1:nrow(indicadores), function(i) {
+    crear_recuadro(
+      categoria = indicadores$Categoria[i],
+      valor = indicadores$Valor[i],
+      color_fondo = "#4286f5",
+      color_numero = "#003366"
     )
-    print(botonera_1)  
-
+  })
+  
+  # Organizar los gráficos en la botonera
+  botonera <- grid.arrange(
+    recuadro_superior,
+    arrangeGrob(grobs = graficos, ncol = 5), # Ajusta ncol según el número de categorías
+    heights = c(1, 2)
+  )
+  
+  # Mostrar el gráfico final
+  print(botonera)
+  
+  
 
 
 
@@ -168,8 +190,6 @@ lesiones_evolutivo <- lesiones_hogar %>%
 
 #objeto n lesiones
 lesiones_total <- sum(lesiones_evolutivo$Total, na.rm = TRUE)
-
-
 
 #grafico evolutivo lesiones
 
