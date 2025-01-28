@@ -63,6 +63,8 @@ peaton <- siniestrov_eventos %>%
   summarise(Total = sum(Total)) %>% 
   pull(Total)
 
+{
+  
 
 #INDICADORES
 indicadores <- data.frame(
@@ -70,7 +72,7 @@ indicadores <- data.frame(
   Valor = c(transporte_publico, automovil, moto, ciclista, peaton))
 
 # Función para crear recuadros con centro claro
-crear_recuadro <- function(categoria, valor, variacion, color_fondo, color_numero) {
+crear_recuadro <- function(categoria, valor, variacion, color_fondo, color_numero) 
   # Dividir el texto del título en dos líneas si es demasiado largo
   titulo_wrapped <- stringr::str_wrap(categoria, width = 20)
   
@@ -86,7 +88,6 @@ crear_recuadro <- function(categoria, valor, variacion, color_fondo, color_numer
     # Nota de variación
     annotate("text", x = 0.5, y = 0.15, label = paste("Variación:", variacion, "%"), size = 3.5, color = "white") +
     theme_void()
-}
 
 # Recuadro superior con centro más claro
 recuadro_superior <- ggplot() +
@@ -110,23 +111,17 @@ graficos <- list(
 )
 
 # Organizar el recuadro superior y los indicadores secundarios
-botonera_1 <- grid.arrange(
+indicadores_siniestrovial <- grid.arrange(
   recuadro_superior, 
   arrangeGrob(grobs = graficos, ncol = 3), #columnas en las que se organizan los graf abajo
   heights = c(1, 2) 
   # Ajusta la proporción de alturas
 )
-print(botonera_1)
+print(indicadores_siniestrovial )
 
+  }
 
-
-
-
-
-
-
-
-
+{
 #grafico evolutivo
 siniestros_viales_grafico_evolutivo <- siniestros_viales_evolutivo %>% 
   ggplot(aes(x = SE_ANIO, y = total_cantidad)) +
@@ -146,3 +141,4 @@ siniestros_viales_grafico_evolutivo <- siniestros_viales_evolutivo %>%
     axis.line = element_blank(),
     axis.ticks = element_blank())
 siniestros_viales_grafico_evolutivo
+}
