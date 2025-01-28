@@ -164,7 +164,7 @@ lesiones_eventos <- lesiones_hogar %>%
   })
   
   # Organizar los gráficos en la botonera
-  botonera <- grid.arrange(
+  indicador_lesiones <- grid.arrange(
     recuadro_superior,
     arrangeGrob(grobs = graficos, ncol = 5), # Ajusta ncol según el número de categorías
     heights = c(1, 2)
@@ -215,5 +215,4 @@ lesiones_grafico_evolutivo <- lesiones_evolutivo %>%
 
 # Mostrar el gráfico
 lesiones_grafico_evolutivo 
-    }
     
