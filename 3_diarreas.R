@@ -272,13 +272,12 @@ indicador_diarreas
   DA_grafico_regiones <- 
     DA_tabla_regiones_grupoetario %>% 
     filter(!is.na(REGIONES)) %>%  # Eliminar filas donde REGIONES es NA
-    ggplot(aes(x=Total, y=GRUPO_2))+
+    ggplot(aes(x=GRUPO_2, y=Total))+
     geom_bar(stat = "identity", fill = "orange", width = 0.5) +  
     facet_wrap(~ REGIONES, ncol=3) +  # Facetear por la columna REGIONES
     labs(
-      x = "Casos de diarrea aguda",
-      y = "Grupos de edad"
-    ) +
+      x = "Grupos de edad",
+      y = "Casos de diarrea aguda") +
     theme_classic() +
     theme(
       axis.text.x = element_text(size = 7),
