@@ -1,7 +1,4 @@
-#source
-source("1_general.R")
-  
-  
+
 #Lesiones en el hogar---------
   lesiones_hogar <- agrupada %>% 
     filter(IDEVENTOAGRUPADO==116) %>% 
@@ -9,7 +6,7 @@ source("1_general.R")
   
   #Cantidad segun SE BEM
   lesiones_hogar_SE_BEM <- lesiones_hogar %>%
-    filter(ANIO == 2024, SEMANA   %in% c(48, 49, 50, 51, 52)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
+    filter(ANIO == ANIO_max, SEMANA   %in% c(SE_BEM)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") 
  #----   
     
@@ -67,10 +64,14 @@ lesiones_eventos <- lesiones_hogar %>%
   
   # Función para crear recuadros
   crear_recuadro <- function(categoria, valor, color_fondo, color_numero) {
+   
+     # Ajustar el texto para dividirlo en varias líneas
+    categoria_wrapped <- stringr::str_wrap(categoria, width = 20)
+    
     ggplot() +
       annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo, alpha = 0.9) +
       annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-      annotate("text", x = 0.5, y = 0.8, label = categoria, size = 4, fontface = "bold", color = "white") +
+      annotate("text", x = 0.5, y = 0.8, label = categoria_wrapped, size = 6, fontface = "bold", color = "white") +
       annotate("text", x = 0.5, y = 0.5, label = valor, size = 8, fontface = "bold", color = color_numero) +
       theme_void()
   }
@@ -80,7 +81,7 @@ lesiones_eventos <- lesiones_hogar %>%
     annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#4286f5", alpha = 0.9) +
     annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
     annotate("text", x = 0.5, y = 0.8, label = "Internaciones por lesiones en el hogar", 
-             size = 5, fontface = "bold", color = "white") +
+             size = 8, fontface = "bold", color = "white") +
     annotate("text", x = 0.5, y = 0.5, label = sum(indicadores$Valor), 
              size = 10, fontface = "bold", color = "#003366") +
     theme_void()
@@ -103,11 +104,8 @@ lesiones_eventos <- lesiones_hogar %>%
   )
   
   # Mostrar el gráfico final
-  print(botonera)
+  indicador_lesiones
   
-  
-
-
 
 #tabla_lesiones_ evolutivo
 lesiones_evolutivo <- lesiones_hogar %>%
@@ -116,6 +114,7 @@ lesiones_evolutivo <- lesiones_hogar %>%
   mutate(ANIO_SE = paste(SEMANA, ANIO, sep = "-")) %>% 
   arrange(ANIO, SEMANA) %>% 
   mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE))) %>% 
+  tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) %>% 
   as.data.frame()
 
 

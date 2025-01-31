@@ -1,7 +1,3 @@
-#source
-source("1_general.R")
-
-
 
 #mordeduras evolutivo 
 {  
@@ -16,8 +12,8 @@ source("1_general.R")
     summarise(total_cantidad = sum(CANTIDAD), .groups = "drop") %>%  # Suma la columna cantidad, ignorando NA
     arrange(ANIO, SEMANA) %>% 
     mutate(SE_ANIO = paste(ANIO, SEMANA, sep = "-")) %>%  # Crear la variable como texto: "ANIO-SEMANA"
-    mutate(SE_ANIO = factor(SE_ANIO, levels = unique(SE_ANIO)))  # Convertir a factor, asegurando el orden cronológico
-  
+    mutate(SE_ANIO = factor(SE_ANIO, levels = unique(SE_ANIO))) %>%   # Convertir a factor, asegurando el orden cronológico
+    tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) 
   
   #objeto n mordeduras acumulado
   mordeduras_total <- sum(mordeduras_evolutivo$total_cantidad, na.rm = TRUE)
@@ -25,7 +21,7 @@ source("1_general.R")
   
   #objeto n mordeduras SE BEM
  mordeduras_cantidad_SE_BEM <- mordedura_perro %>%
-    filter(ANIO == 2024, SEMANA   %in% c(48, 49, 50, 51, 52)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
+    filter(ANIO == ANIO_max, SEMANA   %in% c(SE_BEM)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
     summarise(total_Cantidad = sum(CANTIDAD, na.rm = TRUE))
   
   
@@ -85,51 +81,56 @@ source("1_general.R")
 #construccion de indicadores
    
    # Crear el dataframe indicadores
-indicadores <- data.frame(
+   indicadores <- data.frame(
      Categoria = c("Perro conocido en la vía pública", "Perro desconocido en la vía pública", "En la vivienda", 
                    "Sin especificar"),
-     Valor = c(perro_conocido,perro_desconocido, perro_vivienda, perro_sinespecificar),
-     Variacion = c(mordedura_variacion_porcentual))
+     Valor = c(perro_conocido, perro_desconocido, perro_vivienda, perro_sinespecificar)
+   )
    
    # Función para crear recuadros
-   crear_recuadro <- function(categoria, valor, color_fondo, color_numero) 
+   crear_recuadro <- function(categoria, valor, color_fondo, color_numero) {
+     categoria_wrapped <- stringr::str_wrap(categoria, width = 20) # Divide el texto en líneas más cortas
+     
      ggplot() +
        annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo, alpha = 0.9) +
        annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-       annotate("text", x = 0.5, y = 0.8, label = categoria, size = 4, fontface = "bold", color = "white") +
-       annotate("text", x = 0.5, y = 0.5, label = valor, size = 8, fontface = "bold", color = color_numero) +
+       annotate("text", x = 0.5, y = 0.8, label = categoria_wrapped, size = 10, fontface = "bold", color = "white") +
+       annotate("text", x = 0.5, y = 0.5, label = valor, size = 10, fontface = "bold", color = color_numero) +
        theme_void()
+   }
    
    # Recuadro superior
    recuadro_superior <- ggplot() +
      annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#c0de00", alpha = 0.9) +
      annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
      annotate("text", x = 0.5, y = 0.8, label = "Lesiones por mordedura de perro", 
-              size = 5, fontface = "bold", color = "white") +
+              size = 10, fontface = "bold", color = "white") +
      annotate("text", x = 0.5, y = 0.5, label = sum(indicadores$Valor), 
               size = 10, fontface = "bold", color = "#00a44a") +
      # Variación porcentual en la banda inferior
-     annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 4, fontface = "bold", color = "#00a44a", hjust = 0) +
-     annotate("text", x = 0.9, y = 0.165, label = mordedura_variacion_porcentual, size = 4, fontface = "bold", color = "#00a44a", hjust = 1) +
+     annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 8, fontface = "bold", color = "#00a44a", hjust = 0) +
+     annotate("text", x = 0.9, y = 0.165, label = mordedura_variacion_porcentual, size = 8, fontface = "bold", color = "#00a44a", hjust = 1) +
      theme_void()
- 
    
    # Crear gráficos individuales
-   graficos <- lapply(1:nrow(indicadores), function(i) 
+   graficos <- lapply(1:nrow(indicadores), function(i) {
      crear_recuadro(
        categoria = indicadores$Categoria[i],
        valor = indicadores$Valor[i],
        color_fondo = "#c0de00",
-       color_numero = "#00a44a"))
+       color_numero = "#00a44a"
+     )
+   })
    
    # Organizar los gráficos en la botonera
    indicador_mordedura <- grid.arrange(
      recuadro_superior,
      arrangeGrob(grobs = graficos, ncol = 4), # Ajusta ncol según el número de categorías
-     heights = c(1, 2))
+     heights = c(1, 2)
+   )
    
    # Mostrar el gráfico final
-   print(indicador_mordedura)
+   indicador_mordedura
    
      }  
   
@@ -147,9 +148,9 @@ indicadores <- data.frame(
       y = "Casos de mordeduras de perros") +
     theme_classic() +
     theme(
-      axis.title = element_text(size = 12),
-      axis.text.x = element_text(size = 12, angle = 90, hjust = 1),
-      axis.text.y = element_text(size = 12),
+      axis.title = element_text(size = 40),
+      axis.text.x = element_text(size = 35, angle = 90, hjust = 1),
+      axis.text.y = element_text(size = 35),
       panel.border = element_blank(),
       axis.line = element_blank(),
       axis.ticks = element_blank())
@@ -199,7 +200,7 @@ indicadores <- data.frame(
     geom_col(stat = "identity", fill = "#7dd473", width = 0.5) +  # Gráfico de barras horizontales
     geom_text(aes(label = round(incidencia, 1)),  # Etiquetas con valores redondeados
               hjust = -0.2,  # Desplaza las etiquetas a la derecha
-              size = 3) +  # Tamaño del texto de las etiquetas
+              size = 1.8) +  # Tamaño del texto de las etiquetas
     facet_wrap(~ REGIONES, ncol = 3, scales = "free_x") +  # Facetear por región, 2 columnas
     labs(
       x = "Año",
@@ -210,7 +211,7 @@ indicadores <- data.frame(
       axis.text.y = element_text(size = 7),
       axis.title.x = element_text(size = 10),
       axis.title.y = element_text(size = 10),
-      strip.text = element_text(size = 10))  # Tamaño del texto en los facetes
+      strip.text = element_text(size = 7))  # Tamaño del texto en los facetes
   
   mordedura_incidencia_grafico
   }

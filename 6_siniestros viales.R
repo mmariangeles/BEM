@@ -1,7 +1,3 @@
-#utilizo source
-
-source("1_general.R")
-
 #sinistrios viales evolutivo
 siniestros_viales <- agrupada %>% 
   filter(IDEVENTOAGRUPADO == 115) %>% 
@@ -13,6 +9,7 @@ siniestros_viales_evolutivo <- siniestros_viales %>%
   group_by(SEMANA, ANIO) %>%  
   summarise(total_cantidad = sum(CANTIDAD), .groups = "drop") %>%  # Suma la columna cantidad, ignorando NA
   arrange(ANIO, SEMANA) %>% 
+  tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) %>%
   mutate(SE_ANIO = paste(ANIO, SEMANA, sep = "-")) %>%  # Crear la variable como texto: "ANIO-SEMANA"
   mutate(SE_ANIO = factor(SE_ANIO, levels = unique(SE_ANIO)))  # Convertir a factor, asegurando el orden cronológico 
 
@@ -64,62 +61,66 @@ peaton <- siniestrov_eventos %>%
   pull(Total)
 
 {
-  
 
 #INDICADORES
-indicadores <- data.frame(
-  Categoria = c("Conductor o pasajero de transporte público", "Conductor o pasajero de automovil", "Conductor o pasajero de motocicleta", "Ciclista","Peatón"),
-  Valor = c(transporte_publico, automovil, moto, ciclista, peaton))
-
-# Función para crear recuadros con centro claro
-crear_recuadro <- function(categoria, valor, variacion, color_fondo, color_numero) 
-  # Dividir el texto del título en dos líneas si es demasiado largo
-  titulo_wrapped <- stringr::str_wrap(categoria, width = 20)
   
-  ggplot() +
-    # Fondo del recuadro
-    annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo, alpha = 0.9) +
-    # Centro más claro
-    annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-    # Título en dos líneas, más pequeño
-    annotate("text", x = 0.5, y = 0.9, label = titulo_wrapped, size = 4, fontface = "bold", color = "white", lineheight = 0.8) +
-    # Número en el centro
-    annotate("text", x = 0.5, y = 0.5, label = format(valor, big.mark = ","), size = 8, fontface = "bold", color = color_numero) +
-    # Nota de variación
-    annotate("text", x = 0.5, y = 0.15, label = paste("Variación:", variacion, "%"), size = 3.5, color = "white") +
-    theme_void()
-
-# Recuadro superior con centro más claro
-recuadro_superior <- ggplot() +
-  # Fondo del recuadro
-  annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#4286f5",  alpha = 0.9) +
-  # Centro más claro
-  annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "white", alpha = 0.8) +
-  # Texto del título
-  annotate("text", x = 0.5, y = 0.8, label = "Internaciones por siniestros viales", size = 5, fontface = "bold", color = "white") +
-  # Número en el centro
-  annotate("text", x = 0.5, y = 0.5, label = siniestros_viales_SEBEM, size = 10, fontface = "bold", color = "#003366") +
-  theme_void()
-
-# Crear gráficos para los indicadores secundarios
-graficos <- list(
-  crear_recuadro("Conductor o pasajero de transporte público", 29.2, "#4286f5", "#003366"),
-  crear_recuadro("Conductor o pasajero de automovil", 31.5, "#4286f5", "#003366"),
-  crear_recuadro("Conductor o pasajero de motocicleta",  41.7, "#4286f5", "#003366"),
-  crear_recuadro("Ciclista",  15.3, "#4286f5", "#003366"),
-  crear_recuadro("Peatón", 41.7, "#4286f5", "#003366")
-)
-
-# Organizar el recuadro superior y los indicadores secundarios
-indicadores_siniestrovial <- grid.arrange(
-  recuadro_superior, 
-  arrangeGrob(grobs = graficos, ncol = 3), #columnas en las que se organizan los graf abajo
-  heights = c(1, 2) 
-  # Ajusta la proporción de alturas
-)
-print(indicadores_siniestrovial )
-
+  # Cargar librerías necesarias
+  library(ggplot2)
+  library(gridExtra)
+  library(stringr)
+  
+  # Crear dataframe con categorías y valores
+  indicadores <- data.frame(
+    Categoria = c("Conductor o pasajero de transporte público", "Conductor o pasajero de automóvil", 
+                  "Conductor o pasajero de motocicleta", "Ciclista", "Peatón"),
+    Valor = c(transporte_publico, automovil, moto, ciclista, peaton) 
+  )
+  
+  # Función para crear recuadros
+  crear_recuadro <- function(categoria, valor, color_fondo, color_numero) {
+    # Ajustar el texto para dividirlo en varias líneas
+    categoria_wrapped <- stringr::str_wrap(categoria, width = 20)
+    
+    ggplot() +
+      annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = color_fondo) +
+      annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "#faf7ff", alpha = 0.8) +
+      annotate("text", x = 0.5, y = 0.8, label = categoria_wrapped, size = 4, fontface = "bold", 
+               color = "white", lineheight = 0.8) +
+      annotate("text", x = 0.5, y = 0.5, label = valor, size = 8, fontface = "bold", color = color_numero) +
+      theme_void()
   }
+  
+  # Recuadro superior
+  recuadro_superior <- ggplot() +
+    annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1, fill = "#e24a38", alpha = 0.9) +
+    annotate("rect", xmin = 0.1, xmax = 0.9, ymin = 0.3, ymax = 0.7, fill = "#faf7ff", alpha = 0.8) +
+    annotate("text", x = 0.5, y = 0.8, label = "Internaciones por siniestros viales", 
+             size = 5, fontface = "bold", color = "#faf7ff") +
+    annotate("text", x = 0.5, y = 0.5, label = siniestros_viales_SEBEM, 
+             size = 10, fontface = "bold", color = "#e24a38") +
+    theme_void()
+  
+  # Crear gráficos individuales
+  graficos <- lapply(1:nrow(indicadores), function(i) {
+    crear_recuadro(
+      categoria = indicadores$Categoria[i],
+      valor = indicadores$Valor[i],
+      color_fondo = "#e24a38",
+      color_numero = "#e24a38"
+    )
+  })
+  
+  # Organizar los gráficos en la botonera
+  indicador_accidentes <- grid.arrange(
+    recuadro_superior,
+    do.call(arrangeGrob, list(grobs = graficos, ncol = 5)), # Ajusta ncol según el número de categorías
+    heights = c(1, 2)
+  )
+  
+  # Mostrar el gráfico final
+  indicador_accidentes
+  
+  }  
 
 {
 #grafico evolutivo

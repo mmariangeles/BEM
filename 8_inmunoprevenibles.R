@@ -1,8 +1,3 @@
-#source
-source("1_general.R")
-
-
-
 #Inmunoprevenibles----
 IP <- agrupada %>% 
   filter(IDEVENTOAGRUPADO==5)
@@ -54,7 +49,7 @@ IP <- agrupada %>%
   varicela_variacion_porcentual_texto <- paste0(varicela_variacion_porcentual, "%")
   
   #  Crear el diseño del recuadro
-  varicela_indicador <- ggplot() +
+  indicador_varicela <- ggplot() +
     # Fondo superior (celeste mas oscuro) 
     annotate("rect", xmin = 0, xmax = 1, ymin = 0.66, ymax = 1, fill = "#23C3CF", alpha = 0.9) +
     # Fondo central (blanco)
@@ -62,15 +57,15 @@ IP <- agrupada %>%
     # Fondo inferior (celeste claro)
     annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 0.33, fill = "#93e5eb", alpha = 0.9) +
     # Título en la parte superior
-    annotate("text", x = 0.5, y = 0.83, label = "Varicela", size = 5, fontface = "bold", color = "white") +
+    annotate("text", x = 0.5, y = 0.83, label = "Varicela", size = 10, fontface = "bold", color = "white") +
     # Número grande en el centro
     annotate("text", x = 0.5, y = 0.495, label = varicela_SEBEM, size = 10, fontface = "bold", color = "#23C3CF") +
     # Variación porcentual en la banda inferior
-    annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 4, fontface = "bold", color = "#23C3CF", hjust = 0) +
-    annotate("text", x = 0.9, y = 0.165, label = varicela_variacion_porcentual_texto, size = 4, fontface = "bold", color = "#23C3CF", hjust = 1) +
+    annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 8, fontface = "bold", color = "#23C3CF", hjust = 0) +
+    annotate("text", x = 0.9, y = 0.165, label = varicela_variacion_porcentual_texto, size = 8, fontface = "bold", color = "#23C3CF", hjust = 1) +
     theme_void()
   
-  varicela_indicador
+  indicador_varicela
 }
 
 
@@ -84,6 +79,9 @@ IP <- agrupada %>%
     scale_x_discrete(
       breaks = levels(IP_evolutivo$ANIO_SE)[seq(1, length(levels(IP_evolutivo$ANIO_SE)), by = 4)],
       expand = c(0, 0)) +  
+    scale_y_continuous(
+      breaks = seq(0, max(IP_evolutivo$Total, na.rm = TRUE), by = 10),  
+      expand = c(0, 0))+
     scale_fill_manual(
       values = c("Parotiditis" = "#f9f871",  
                  "Varicela" = "#63ddb0"))+
@@ -93,9 +91,9 @@ IP <- agrupada %>%
       fill = "Evento") +
     theme_classic() +
     theme(
-      axis.title = element_text(size = 15),
-      axis.text.x = element_text(size = 15, angle = 90, hjust = 1),
-      axis.text.y = element_text(size = 15),
+      axis.title = element_text(size = 30),
+      axis.text.x = element_text(size = 35, angle = 90, hjust = 1),
+      axis.text.y = element_text(size = 35),
       panel.border = element_blank(),
       axis.line = element_blank(),
       axis.ticks = element_blank())
@@ -155,11 +153,11 @@ IP <- agrupada %>%
       fill = "Grupo de edad") +
     theme_classic() +
     theme(
-      axis.title = element_text(size = 10),
-      axis.text.x = element_text(size = 10, angle = 90, hjust = 1),  # Rotar etiquetas en X
-      axis.text.y = element_text(size = 10),  # Fuente para los textos del eje Y
-      axis.title.x = element_text(size = 10),  # Cambia el tamaño del título del eje X
-      axis.title.y = element_text(size = 10),
+      axis.title = element_text(size = 20),
+      axis.text.x = element_text(size = 30, angle = 90, hjust = 1),  # Rotar etiquetas en X
+      axis.text.y = element_text(size = 30),  # Fuente para los textos del eje Y
+      axis.title.x = element_text(size = 30),  # Cambia el tamaño del título del eje X
+      axis.title.y = element_text(size = 30),
       panel.border = element_blank(),  # Eliminar borde del panel
       axis.line = element_blank(),  # Eliminar líneas de los ejes
       axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
@@ -255,31 +253,22 @@ IP <- agrupada %>%
   #grafico incidencia
   varicela_incidencia_grafico <- varicela_incidencia %>% 
     filter(!is.na(incidencia)) %>%  # Filtrar para excluir NA en incidencia
-    ggplot(aes(x = incidencia, y = factor(ANIO))) +  # Años en el eje Y, ordenados cronológicamente
+    ggplot(aes(x = factor(ANIO), y = incidencia)) +  # Años en el eje Y, ordenados cronológicamente
     geom_col(stat = "identity", fill = "#63ddb0", width = 0.5) +  # Gráfico de barras horizontales
     geom_text(aes(label = round(incidencia, 1)),  # Etiquetas con valores redondeados
               hjust = -0.2,  # Desplaza las etiquetas a la derecha
-              size = 3) +  # Tamaño del texto de las etiquetas
-    facet_wrap(~ REGIONES, ncol = 3) +  # Facetear por región, 2 columnas
+              size = 1.8) +  # Tamaño del texto de las etiquetas
+    facet_wrap(~ REGIONES, ncol = 3, scales = "free_x") +  # Facetear por región, 2 columnas
     labs(
-      x = "Incidencia acumulada cada 10000 habitantes",
-      y = "Año") +
+      x = "Año",
+      y = "Incidencia acumulada cada 10000 habitantes") +
     theme_classic() +
     theme(
       axis.text.x = element_text(size = 7),
       axis.text.y = element_text(size = 7),
       axis.title.x = element_text(size = 10),
       axis.title.y = element_text(size = 10),
-      strip.text = element_text(size = 10))  # Tamaño del texto en los facetes
+      strip.text = element_text(size = 7))  # Tamaño del texto en los facetes
   
   varicela_incidencia_grafico
-  
-  
-  
-  
-  
-  
-  
-  
-  
-}
+  }

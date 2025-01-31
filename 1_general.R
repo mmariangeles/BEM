@@ -6,16 +6,6 @@
 
 
 
-library(readr)
-library(tidyverse)
-library(dplyr)
-library(knitr)
-library(ggplot2)
-library(readxl)
-library(highcharter)
-library(lubridate)
-library(gridExtra) #para las tablitas de indicadores
-
 #preparacion de base agrupada----
 {
   #lectura de base y chequeo de formato dataframe

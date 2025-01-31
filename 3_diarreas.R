@@ -1,6 +1,4 @@
-#source
-source("1_general.R")
-  
+
 #DIARREAS----
 diarreas <- agrupada %>% 
   filter(ID_SNVS_EVENTO_AGRP==11)
@@ -12,7 +10,7 @@ diarreas <- agrupada %>%
 #selecciono solo las SE del BEM para hacer mi objeto del total de las DA de este BEM
 
 DA_cantidad_SE_BEM <- diarreas %>%
-  filter(ANIO == 2024, SEMANA   %in% c(48, 49, 50, 51, 52)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
+  filter(ANIO == ANIO_max, SEMANA   %in% c(SE_BEM)) %>%
   summarise(total_Cantidad = sum(CANTIDAD, na.rm = TRUE))
 
 
@@ -20,7 +18,7 @@ DA_cantidad_SE_BEM <- diarreas %>%
 
 #selecciono las SE del año pasado (es para hacer la variacion porcentual del set de indicadores)
 DA_cantidad_SE_BEM_anioanterior <- diarreas %>%
-  filter(ANIO == 2023, SEMANA %in% c(48, 49, 50, 51, 52)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
+  filter(ANIO == 2023, SEMANA %in% c(SE_BEM)) %>% 
   summarise(total_Cantidad = sum(CANTIDAD, na.rm = TRUE)) 
 
 
@@ -36,7 +34,7 @@ DA_cantidad_SE_BEM <- gsub("\\.", "", as.character(DA_cantidad_SE_BEM))
 DA_variacion_porcentual_texto <- paste0(DA_variacion_porcentual, "%")
 
 #  Crear el diseño del recuadro
-recuadro_diarreas <- ggplot() +
+indicador_diarreas <- ggplot() +
   # Fondo superior (naranja)
   annotate("rect", xmin = 0, xmax = 1, ymin = 0.66, ymax = 1, fill = "#FF6F31", alpha = 0.9) +
   # Fondo central (blanco)
@@ -44,15 +42,15 @@ recuadro_diarreas <- ggplot() +
   # Fondo inferior (naranja claro)
   annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 0.33, fill = "#FFD9C4", alpha = 0.9) +
   # Título en la parte superior
-  annotate("text", x = 0.5, y = 0.83, label = "Diarrea aguda", size = 5, fontface = "bold", color = "white") +
+  annotate("text", x = 0.5, y = 0.83, label = "Diarrea aguda", size = 10, fontface = "bold", color = "white") +
   # Número grande en el centro
   annotate("text", x = 0.5, y = 0.495, label = DA_cantidad_SE_BEM, size = 10, fontface = "bold", color = "#FF4F00") +
   # Variación porcentual en la banda inferior
-  annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 4, fontface = "bold", color = "#FF6F31", hjust = 0) +
-  annotate("text", x = 0.9, y = 0.165, label = DA_variacion_porcentual_texto, size = 4, fontface = "bold", color = "#FF6F31", hjust = 1) +
+  annotate("text", x = 0.1, y = 0.165, label = "Variación", size = 8, fontface = "bold", color = "#FF6F31", hjust = 0) +
+  annotate("text", x = 0.9, y = 0.165, label = DA_variacion_porcentual_texto, size = 8, fontface = "bold", color = "#FF6F31", hjust = 1) +
   theme_void()
 
-recuadro_diarreas
+indicador_diarreas
 
 
 #DA evolutivo 
@@ -63,7 +61,11 @@ recuadro_diarreas
     mutate(ANIO_SE = paste(SEMANA, ANIO, sep = "-")) %>% 
     arrange(ANIO, SEMANA) %>% 
     mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE))) %>% 
+    group_by(ANIO) %>% 
+    tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) %>% 
+    ungroup() %>% 
     as.data.frame()
+  
   
   #por qué lo convierto a factor? Mostrar imagen. Si es un factor permite el orden cronologico
   
@@ -106,6 +108,7 @@ recuadro_diarreas
     mutate(ANIO_SE = paste(SEMANA, ANIO, sep = "-")) %>% 
     arrange(ANIO, SEMANA) %>% 
     mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE))) %>% 
+    tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) %>%
     as.data.frame()
   
   # Ver la tabla y chequeo para ver que esté ok
@@ -162,11 +165,9 @@ recuadro_diarreas
       fill = "Grupo de edad") +
     theme_classic() +
     theme(
-      axis.title = element_text(size = 20),
-      axis.text.x = element_text(size = 20, angle = 90, hjust = 1),  # Rotar etiquetas en X
-      axis.text.y = element_text(size = 20),  # Fuente para los textos del eje Y
-      axis.title.x = element_text(size = 10),  # Cambia el tamaño del título del eje X
-      axis.title.y = element_text(size = 10),
+      axis.title = element_text(size = 40),
+      axis.text.x = element_text(size = 40, angle = 90, hjust = 1),  # Rotar etiquetas en X
+      axis.text.y = element_text(size = 40),  # Fuente para los textos del eje Y
       panel.border = element_blank(),  # Eliminar borde del panel
       axis.line = element_blank(),  # Eliminar líneas de los ejes
       axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
@@ -178,7 +179,7 @@ recuadro_diarreas
 #DA por grupos etarios SE del BEM
 {#Armar una tabla para hacer un graf de DA por grupos etarios SE del BEM
   DA_tabla_grupoetario <- diarreas %>%
-    filter(ANIO == 2024, SEMANA %in% c(48, 49, 50, 51, 52)) %>% # Cambiar ANIO y SEMANA según corresponda
+    filter(ANIO == ANIO_max, SEMANA %in% c(SE_BEM)) %>% 
     group_by(GRUPO) %>% 
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>%
     mutate(
@@ -236,7 +237,7 @@ recuadro_diarreas
 {
   #Armar una tabla 
   DA_tabla_regiones_grupoetario <- diarreas %>%
-    filter(ANIO == 2024, SEMANA %in% c(48, 49, 50, 51, 52)) %>% # Cambiar ANIO y SEMANA según corresponda
+    filter(ANIO == ANIO_max, SEMANA %in% c(SE_BEM)) %>% # Cambiar ANIO y SEMANA según corresponda
     group_by(GRUPO, REGIONES) %>%
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop")
   
