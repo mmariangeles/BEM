@@ -33,7 +33,7 @@ IP <- agrupada %>%
   #selecciono las SE del año pasado (es para hacer la variacion porcentual del set de indicadores)
   varicela_SEBEManterior <- IP %>%
     filter(ID_SNVS_EVENTO_AGRP == 6, 
-           ANIO == 2023,  
+           ANIO == anio_anterior,  
            SEMANA %in% SE_BEM) %>% 
     summarize(Total_Cantidad = sum(CANTIDAD, na.rm = TRUE))
   

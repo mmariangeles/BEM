@@ -3,6 +3,8 @@
 diarreas <- agrupada %>% 
   filter(ID_SNVS_EVENTO_AGRP==11)
 
+ANIO_max
+
 #set de indicadores-----
 
 #tabla con el total y la variacion porcentual 
@@ -18,7 +20,7 @@ DA_cantidad_SE_BEM <- diarreas %>%
 
 #selecciono las SE del año pasado (es para hacer la variacion porcentual del set de indicadores)
 DA_cantidad_SE_BEM_anioanterior <- diarreas %>%
-  filter(ANIO == 2023, SEMANA %in% c(SE_BEM)) %>% 
+  filter(ANIO == anio_anterior, SEMANA %in% c(SE_BEM)) %>% 
   summarise(total_Cantidad = sum(CANTIDAD, na.rm = TRUE)) 
 
 
@@ -79,10 +81,10 @@ indicador_diarreas
     ggplot(aes(x = ANIO_SE, y = Total)) +
     geom_bar(stat = "identity", fill = "orange",color = "#FF8C00", width = 0.5) +
     scale_x_discrete(
-      breaks = levels(DA_evolutivo$ANIO_SE)[seq(1, length(levels(DA_evolutivo$ANIO_SE)), by = 5)],
+      breaks = levels(DA_evolutivo$ANIO_SE)[seq(1, length(levels(DA_evolutivo$ANIO_SE)), by = 4)],
       expand = c(0, 0)) +
     scale_y_continuous(
-      breaks = seq(0, max(DA_evolutivo$Total, na.rm = TRUE), by = 200),
+      breaks = seq(0, max(DA_evolutivo$Total, na.rm = TRUE), by=100),
       expand = c(0, 0))+
     labs(
       x = "SE-año",
@@ -215,6 +217,7 @@ indicador_diarreas
   
   #gráfico DA grupo de edad
   DA_grafico_grupoetario <- DA_tabla_grupoetario %>% 
+    filter(!is.na(GRUPO_2)) %>%  # Filtra los NA en GRUPO_2
     ggplot(aes(x=Total, y=GRUPO_2))+
     geom_bar(stat = "identity", fill = "orange", width = 0.5)+
     labs(
@@ -272,6 +275,7 @@ indicador_diarreas
   DA_grafico_regiones <- 
     DA_tabla_regiones_grupoetario %>% 
     filter(!is.na(REGIONES)) %>%  # Eliminar filas donde REGIONES es NA
+    filter(!is.na(GRUPO_2)) %>%  # Filtra los NA en GRUPO_2
     ggplot(aes(x=Total, y=GRUPO_2))+
     geom_bar(stat = "identity", fill = "orange", width = 0.5) +  
     facet_wrap(~ REGIONES, ncol=3) +  # Facetear por la columna REGIONES

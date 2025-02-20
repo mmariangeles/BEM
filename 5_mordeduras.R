@@ -28,7 +28,7 @@
   
   #objeto n mordeduras SE BEM año anterior (es para variacion %)
  mordeduras_cantidad_SE_BEManterior <- mordedura_perro %>%
- filter(ANIO == 2023, SEMANA   %in% c(SE_BEM)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
+ filter(ANIO == anio_anterior, SEMANA   %in% c(SE_BEM)) %>% #Es importante ir cambiando el año y las SE según corresponda al BEM
    summarise(total_Cantidad = sum(CANTIDAD, na.rm = TRUE))
  
  #variacion porcentual 

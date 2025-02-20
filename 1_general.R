@@ -1,4 +1,4 @@
-#objetivos de este .R
+#objetivos de este .R Es util para la base agrupada
 #a) cargar librerias
 #b)cargar dataset
 #c)crear objetos SE BEM, AÑO MAX, AÑO MIN
@@ -16,7 +16,8 @@
   
   #selecciono hasta la SE de mi BEM
   agrupada <- agrupada %>%
-    filter(ANIO <= 2024 & SEMANA <= 53)
+    filter(ANIO < 2025 | (ANIO == 2025 & SEMANA <= 5))
+  
   
   #agrego columna region----
   #lectura de la base 
@@ -43,8 +44,8 @@
     mutate(SE_ANIO= paste(SEMANA, ANIO, sep = "-"))
   
   ##SE/año del BEM
-  #las SE/año del BEM de este mes son 48,49,50,51 y 52 (esto es un ayuda memoria) del año 2024#SE maxima
-  SE_BEM <- c(48, 49, 50, 51, 52) #hay que cambiarlo mensualmente
+  #las SE/año del BEM de este mes son   (esto es un ayuda memoria) del año  #SE maxima
+  SE_BEM <- c(1, 2, 3, 4, 5) #hay que cambiarlo mensualmente
   SE_BEM <- as.vector(SE_BEM)
   
   #ANIO maximo (lo voy a usar para tablas, gráficos)
@@ -60,9 +61,11 @@
   #SE_max 
   SE_max <- SE_BEM %>%
     max()
+  
+  #AÑO ANTERIOR AL ACTUAL PARA VARIACION %
+  anio_anterior <- ANIO_max-1
     
     }
-
 
 
 
