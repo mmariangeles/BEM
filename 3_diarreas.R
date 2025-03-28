@@ -28,7 +28,7 @@ DA_cantidad_SE_BEM_anioanterior <- diarreas %>%
 DA_variacion_porcentual <- 
   round((DA_cantidad_SE_BEM - DA_cantidad_SE_BEM_anioanterior)/DA_cantidad_SE_BEM_anioanterior*100,1)
 
-#SET INDICADORES--------
+#SET INDICADORES- recuadro propiamente dicho
 # Esto es para que no tenga puntos el numero
 DA_cantidad_SE_BEM <- gsub("\\.", "", as.character(DA_cantidad_SE_BEM))
 
@@ -55,8 +55,8 @@ indicador_diarreas <- ggplot() +
 indicador_diarreas
 
 
-#DA evolutivo 
-{#ARMO UNA TABLA 
+#DA evolutivo----------- 
+#ARMO UNA TABLA 
   DA_evolutivo <- diarreas %>% 
     group_by(ANIO, SEMANA) %>% 
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>% 
@@ -99,11 +99,11 @@ indicador_diarreas
       axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
   
   grafico_DA_evolutivo
-  }
+  
 
 
-#DA por grupos etarios acumulado
-{#Armar una tabla para hacer un graf de DA por grupos etarios acumulado
+#DA por grupos etarios acumulado-------------
+#Armar una tabla para hacer un graf de DA por grupos etarios acumulado
   DA_tabla_grupoetario_acumulado <- diarreas %>% 
     group_by(ANIO, SEMANA, GRUPO) %>%  
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>%  # Sumar por grupo etario
@@ -134,19 +134,20 @@ indicador_diarreas
         GRUPO == "55 a 64"~ "45 a 64 años",
         GRUPO == "65 a 74"~ "65 años y más",
         GRUPO == ">= a 75"~ "65 años y más",
+        GRUPO == "Edad Sin Esp."~ "Sin especificar",
         TRUE ~ GRUPO))
   
   
   DA_tabla_grupoetario_acumulado$GRUPO_2 <- factor(DA_tabla_grupoetario_acumulado$GRUPO_2, 
                                                    levels = c("< 15 años","15 a 24 años",
                                                               "25 a 44 años","45 a 64 años", 
-                                                              "65 años y más"))
+                                                              "65 años y más","Sin especificar"))
   
   
   
   # Crear gráfico de columnas apiladas
   DA_grafico_grupoetario_acumulado <- DA_tabla_grupoetario_acumulado %>% 
-    filter(!is.na(GRUPO_2)) %>%  # Eliminar filas con NA en GRUPO_2
+  #  filter(!is.na(GRUPO_2)) %>%  # Eliminar filas con NA en GRUPO_2
     ggplot(aes(x = ANIO_SE, y = Total, fill = GRUPO_2)) +
     geom_bar(stat = "identity", position = "fill") + #position fill es para apilado al 100%
     scale_x_discrete(
@@ -160,7 +161,8 @@ indicador_diarreas
       "15 a 24 años" = "#be9500",  
       "25 a 44 años" = "#7a9500",  
       "45 a 64 años" = "#218f06", 
-      "65 años y más" = "#00833c")) +  
+      "65 años y más" = "#00833c",
+      "Sin especificar"= "#34623F")) +  
     labs(
       x = "SE-año",
       y = "% de casos de diarrea aguda",
@@ -172,14 +174,19 @@ indicador_diarreas
       axis.text.y = element_text(size = 40),  # Fuente para los textos del eje Y
       panel.border = element_blank(),  # Eliminar borde del panel
       axis.line = element_blank(),  # Eliminar líneas de los ejes
-      axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
+      axis.ticks = element_blank(),# Eliminar "guioncito" de los ejes
+      legend.position = "bottom",  #cambio el lugar de la leyenda
+      legend.text = element_text(size = 12))   # Ajusta el tamaño del texto de la leyenda
+      
+
   
   DA_grafico_grupoetario_acumulado
-}
 
 
-#DA por grupos etarios SE del BEM
-{#Armar una tabla para hacer un graf de DA por grupos etarios SE del BEM
+#DA por grupos etarios SE del BEM------------
+  
+
+#Armar una tabla para hacer un graf de DA por grupos etarios SE del BEM
   DA_tabla_grupoetario <- diarreas %>%
     filter(ANIO == ANIO_max, SEMANA %in% c(SE_BEM)) %>% 
     group_by(GRUPO) %>% 
@@ -199,6 +206,7 @@ indicador_diarreas
         GRUPO == "45 a 64"~ "45 a 64 años",
         GRUPO == "65 a 74"~ "65 a 74 años",
         GRUPO == ">= a 75"~ ">= a 75 años",
+        GRUPO == "Edad Sin Esp."~ "Sin especificar",
         TRUE ~ GRUPO)) 
   
   
@@ -213,13 +221,14 @@ indicador_diarreas
                                                     "12 a 23 meses","2 a 4 años", "5 a 9 años",
                                                     "10 a 14 años", "15 a 19 años",
                                                     "20 a 24 años", "25 a 34 años", "35 a 44 años",
-                                                    "45 a 64 años","65 a 74 años",">= a 75 años"))
+                                                    "45 a 64 años","65 a 74 años",">= a 75 años",
+                                                     "Sin especificar"))
   
   #gráfico DA grupo de edad
   DA_grafico_grupoetario <- DA_tabla_grupoetario %>% 
-    filter(!is.na(GRUPO_2)) %>%  # Filtra los NA en GRUPO_2
     ggplot(aes(x=Total, y=GRUPO_2))+
     geom_bar(stat = "identity", fill = "orange", width = 0.5)+
+    geom_text(aes(label = Total), position = position_dodge(width = 0.5), hjust = - 0.2, size = 2.5) +  # Añadir etiquetas de datos a la barra
     labs(
       x = "Casos de diarrea aguda",
       y = "Grupos de edad") +
@@ -234,14 +243,14 @@ indicador_diarreas
       axis.line = element_blank(),  # Eliminar líneas de los ejes
       axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
   DA_grafico_grupoetario 
-}
 
-#DA por regiones segun grupo de edad
-{
+#DA por regiones segun grupo de edad---------
+  
+  
   #Armar una tabla 
   DA_tabla_regiones_grupoetario <- diarreas %>%
-    filter(ANIO == ANIO_max, SEMANA %in% c(SE_BEM)) %>% # Cambiar ANIO y SEMANA según corresponda
-    group_by(GRUPO, REGIONES) %>%
+    filter(ANIO == ANIO_max, SEMANA %in% c(SE_BEM)) %>% 
+    group_by(GRUPO, REGION) %>%
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop")
   
   #agrupo segun grupos etarios del BEM 
@@ -263,26 +272,24 @@ indicador_diarreas
         GRUPO == "55 a 64"~ "45 a 64 años",
         GRUPO == "65 a 74"~ "65 años y más",
         GRUPO == ">= a 75"~ "65 años y más",
+        GRUPO == "Edad Sin Esp."~ "Sin especificar",
         TRUE ~ GRUPO))
   
   DA_tabla_regiones_grupoetario$GRUPO_2 <- factor(DA_tabla_regiones_grupoetario$GRUPO_2, 
                                                   levels = c("0 a 4 años","5 a 9 años",
                                                              "10 a 19 años","20 a 44 años", "45 a 64 años",
-                                                             "65 años y más"))
+                                                             "65 años y más","Sin especificar"))
   
   #grafico por regiones segun grupo etario
   
   DA_grafico_regiones <- 
     DA_tabla_regiones_grupoetario %>% 
-    filter(!is.na(REGIONES)) %>%  # Eliminar filas donde REGIONES es NA
-    filter(!is.na(GRUPO_2)) %>%  # Filtra los NA en GRUPO_2
     ggplot(aes(x=Total, y=GRUPO_2))+
     geom_bar(stat = "identity", fill = "orange", width = 0.5) +  
-    facet_wrap(~ REGIONES, ncol=3) +  # Facetear por la columna REGIONES
+    facet_wrap(~ REGION, ncol=3) +  # Facetear por la columna REGIONES
     labs(
       x = "Casos de diarrea aguda",
-      y = "Grupos de edad"
-    ) +
+      y = "Grupos de edad") +
     theme_classic() +
     theme(
       axis.text.x = element_text(size = 7),
@@ -291,4 +298,4 @@ indicador_diarreas
       axis.title.y = element_text(size = 7))
   
   DA_grafico_regiones 
-}         
+      

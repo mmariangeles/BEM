@@ -1,9 +1,8 @@
-#Inmunoprevenibles----
+#Filtrado de agrupada con ID inmunoprevenibles----
 IP <- agrupada %>% 
   filter(IDEVENTOAGRUPADO==5)
 
-#armo tabla evolutivo 
-{
+#Grafico evolutivo-----
   IP_evolutivo <- IP %>% 
     group_by(ANIO, SEMANA, NOMBREEVENTOAGRP) %>% 
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>% 
@@ -17,19 +16,18 @@ IP <- agrupada %>%
   IP_total<- IP_evolutivo %>% 
     summarize(Total_Cantidad = sum(Total, na.rm = TRUE))
   
-  }
 
 #armo objeto total de varicelas SE BEM
-{
+
   varicela_SEBEM <- IP %>%
     filter(ID_SNVS_EVENTO_AGRP == 6, 
            ANIO == ANIO_max,  
            SEMANA %in% SE_BEM) %>% 
     summarize(Total_Cantidad = sum(CANTIDAD, na.rm = TRUE))
-}
+
 
 # Variacion porcentual
-{
+
   #selecciono las SE del año pasado (es para hacer la variacion porcentual del set de indicadores)
   varicela_SEBEManterior <- IP %>%
     filter(ID_SNVS_EVENTO_AGRP == 6, 
@@ -41,11 +39,11 @@ IP <- agrupada %>%
   #variacion porcentual
   varicela_variacion_porcentual <- 
     round((varicela_SEBEM - varicela_SEBEManterior)/varicela_SEBEManterior*100,1)
-}
 
-#Indicador
 
-{# Convertir el valor numérico de la variación a texto con el signo %
+#Indicador-----
+
+# Convertir el valor numérico de la variación a texto con el signo %
   varicela_variacion_porcentual_texto <- paste0(varicela_variacion_porcentual, "%")
   
   #  Crear el diseño del recuadro
@@ -66,14 +64,11 @@ IP <- agrupada %>%
     theme_void()
   
   indicador_varicela
-}
 
 
-#grafico evolutivo 
-{
-  
-  
-  IP_grafico_evolutivo <- IP_evolutivo %>% 
+#grafico evolutivo---- 
+
+    IP_grafico_evolutivo <- IP_evolutivo %>% 
     ggplot(aes(x = ANIO_SE, y = Total, fill=NOMBREEVENTOAGRP)) +
     geom_bar(stat = "identity", width = 0.5) +
     scale_x_discrete(
@@ -98,10 +93,10 @@ IP <- agrupada %>%
       axis.line = element_blank(),
       axis.ticks = element_blank())
   IP_grafico_evolutivo
-}
 
-#Grafico varicela por grupos etarios
-{
+
+#Grafico varicela por grupos etarios----
+
   #armo tabla filtrando solo varicela
   
   Varicela_evolutivo <- IP %>% 
@@ -164,19 +159,15 @@ IP <- agrupada %>%
   
   IP_grafico_grupoetario_acumulado
   
-}  
 
-#gráfico varicela grupo de edad SEBEM
-{
+#gráfico varicela grupo de edad SEBEM-----
+  
   #tabla para el grafico edades segun SE BEM
   
   varicela_tabla_grupoetario <- IP %>% 
     filter(ID_SNVS_EVENTO_AGRP==6,ANIO == ANIO_max & SEMANA %in% SE_BEM ) %>% 
-    group_by(ANIO, SEMANA, GRUPO) %>% 
+    group_by(GRUPO) %>% 
     summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>% 
-    mutate(ANIO_SE = paste(SEMANA, ANIO, sep = "-")) %>% 
-    arrange(ANIO, SEMANA) %>% 
-    mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE))) %>% 
     mutate(
       GRUPO_2 = case_when(
         GRUPO == "< 6 m"~ "< 6 meses",
@@ -199,12 +190,14 @@ IP <- agrupada %>%
                                                 "35 a 44 años","45 a 64 años", "65 a 74 años", ">= a 75 años"))) %>% 
     as.data.frame()
   
+  
   #objeto total varicelas SE BEM
   
   #gráfico varicela grupo de edad
   varicela_grafico_grupoetario <- varicela_tabla_grupoetario %>% 
     ggplot(aes(x=Total, y=GRUPO_2))+
     geom_bar(stat = "identity", fill = "#63ddbd", width = 0.5)+
+    geom_text(aes(label = Total), position = position_dodge(width = 0.5), hjust = - 0.2, size = 2.5) +  # Añadir etiquetas de datos a la barra
     labs(
       x = "Casos de varicela",
       y = "Grupos de edad") +
@@ -219,13 +212,12 @@ IP <- agrupada %>%
       axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
   varicela_grafico_grupoetario
   
-}
 
-#grafico incidencia por regiones
-{
+#grafico incidencia por REGION------
+
   varicela_incidencia <-  IP %>%
     filter(ID_SNVS_EVENTO_AGRP == 6) %>% 
-    group_by(REGIONES, ANIO) %>%
+    group_by(REGION, ANIO) %>%
     summarise(
       total_cantidad = sum(CANTIDAD), 
       .groups = "drop")
@@ -237,7 +229,7 @@ IP <- agrupada %>%
   poblacion <- read_excel("Poblacion.xlsx")
   
   varicela_incidencia <- varicela_incidencia %>%
-    left_join(poblacion, by = c("ANIO", "REGIONES"))
+    left_join(poblacion, by = c("ANIO", "REGION"))
   
   
   #agrego el calculo de incidencia 
@@ -258,7 +250,7 @@ IP <- agrupada %>%
     geom_text(aes(label = round(incidencia, 1)),  # Etiquetas con valores redondeados
               hjust = -0.2,  # Desplaza las etiquetas a la derecha
               size = 1.8) +  # Tamaño del texto de las etiquetas
-    facet_wrap(~ REGIONES, ncol = 3, scales = "free_x") +  # Facetear por región, 2 columnas
+    facet_wrap(~ REGION, ncol = 3, scales = "free_x") +  # Facetear por región, 2 columnas
     labs(
       x = "Año",
       y = "Incidencia acumulada cada 10000 habitantes") +
@@ -271,4 +263,3 @@ IP <- agrupada %>%
       strip.text = element_text(size = 7))  # Tamaño del texto en los facetes
   
   varicela_incidencia_grafico
-  }

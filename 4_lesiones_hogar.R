@@ -87,21 +87,21 @@ lesiones_eventos <- lesiones_hogar %>%
     theme_void()
   
   # Crear gráficos individuales
-  graficos <- lapply(1:nrow(indicadores), function(i) {
-    crear_recuadro(
-      categoria = indicadores$Categoria[i],
-      valor = indicadores$Valor[i],
-      color_fondo = "#4286f5",
-      color_numero = "#003366"
-    )
-  })
+  #graficos <- lapply(1:nrow(indicadores), function(i) {
+  #  crear_recuadro(
+  #    categoria = indicadores$Categoria[i],
+  #    valor = indicadores$Valor[i],
+  #    color_fondo = "#4286f5",
+  #    color_numero = "#003366"
+  #  )
+  #})
   
   # Organizar los gráficos en la botonera
-  indicador_lesiones <- grid.arrange(
-    recuadro_superior,
-    arrangeGrob(grobs = graficos, ncol = 5), # Ajusta ncol según el número de categorías
-    heights = c(1, 2)
-  )
+  #indicador_lesiones <- grid.arrange(
+  #  recuadro_superior,
+  #  arrangeGrob(grobs = graficos, ncol = 5), # Ajusta ncol según el número de categorías
+  #  heights = c(1, 2)
+  #)
   
   # Mostrar el gráfico final
   indicador_lesiones

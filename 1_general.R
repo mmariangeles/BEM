@@ -9,14 +9,14 @@
 #preparacion de base agrupada----
 {
   #lectura de base y chequeo de formato dataframe
-  agrupada <- read.csv("NEUQUEN_CLI.CSV", sep = ";",na.strings = "")
+  agrupada <- read.csv("NEUQUEN_CLI.csv", sep = ";",na.strings = "")
   sum(complete.cases(agrupada))
   
   nrow(agrupada)
   
   #selecciono hasta la SE de mi BEM
   agrupada <- agrupada %>%
-    filter(ANIO < 2025 | (ANIO == 2025 & SEMANA <= 5))
+    filter(ANIO < 2025 | (ANIO == 2025 & SEMANA <= 9))
   
   
   #agrego columna region----
@@ -24,16 +24,16 @@
   regiones <- read_excel("REGIONES.xlsx")
   regiones <- as.data.frame(regiones) #cambio formato a dataframe
   
-  regiones_duplicadas <- regiones %>% #esto lo hago porque habia duplicados que agregaban observaciones a "agrupadas"
-    group_by(LOCALIDAD) %>%
-    filter(n() > 1)
+  #regiones_duplicadas <- regiones %>% #esto lo hago porque habia duplicados que agregaban observaciones a "agrupadas"
+  # group_by(LOCALIDAD) %>%
+  # filter(n() > 1)
   
-  regiones <- regiones%>%
-    distinct(LOCALIDAD, .keep_all = TRUE)
+  #regiones <- regiones%>%
+  #  distinct(LOCALIDAD, .keep_all = TRUE)
   
   #agrego la columna regiones e ID regiones a agrupadas
   agrupada <- agrupada %>%
-    left_join(regiones, by = "LOCALIDAD")
+    left_join(regiones, by = "ID_ORIGEN")
   
 }
 
@@ -45,7 +45,7 @@
   
   ##SE/año del BEM
   #las SE/año del BEM de este mes son   (esto es un ayuda memoria) del año  #SE maxima
-  SE_BEM <- c(1, 2, 3, 4, 5) #hay que cambiarlo mensualmente
+  SE_BEM <- c(6, 7, 8, 9) #hay que cambiarlo mensualmente
   SE_BEM <- as.vector(SE_BEM)
   
   #ANIO maximo (lo voy a usar para tablas, gráficos)
