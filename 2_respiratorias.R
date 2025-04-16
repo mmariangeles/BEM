@@ -1,247 +1,102 @@
-respi <- read.csv2("VR_NOMINAL_Neuquen.csv")
-sum(complete.cases(respi))
 
 
-respi <- as.data.frame(respi)
-str(respi)
+#lectura base
+VR_NOMINAL <- read_excel("VR_NOMINAL_Neuquen.xlsx")
 
-
-colnames(respi)
-#primero filtro que ID_prov residencia sea = 58
-respi <- respi %>% 
-  filter(ID_PROV_INDEC_RESIDENCIA==58)
-
-
-#esta mal respi <- respi %>% 
-#  arrange(IDEVENTOCASO) %>% 
-#  mutate(duplicado = ifelse(duplicated(IDEVENTOCASO) | duplicated(IDEVENTOCASO, fromLast = TRUE), 
-#                            "DUPLICADO", "NO"))
-
-
-respi <- respi %>%
-  arrange(IDEVENTOCASO) %>%
-  mutate(duplicado = ifelse(duplicated(IDEVENTOCASO), "DUPLICADO", "NO"))
-
-
-
-
-
-
-# Guardar un dataset como archivo CSV
-#write.csv(respi, "respi_chequeocompleto.csv", row.names = FALSE)
-
-#ARMO LA BASE SOLO CON LOS NO DUPLICADOS
-respi <- respi %>% 
-  filter(duplicado=="NO")
-
-
-#agrego columnas fecha min, anio min y SE min
-#primero chequeo formato de las fechas
-str(respi) #son character, entonces las paso a date
-
-respi <- respi %>%
+# Aplicar la conversión a fecha solo si es necesario
+VR_NOMINAL <- VR_NOMINAL %>%
   mutate(
-    FIS = as.Date(FIS, format = "%Y-%m-%d"),
-    FECHA_CONSULTA = as.Date(FECHA_CONSULTA, format = "%Y-%m-%d"),
-    FECHA_APERTURA = as.Date(FECHA_APERTURA, format = "%Y-%m-%d"),
-    FTM = as.Date(FTM, format = "%Y-%m-%d"),
-    FECHA_ESTUDIO = as.Date(FECHA_ESTUDIO, format = "%Y-%m-%d"))
-
-#corro de nuevo línea 17 (str) para corroborar todo ok con formato
-
-
-#columna fecha min
-respi <- respi%>% 
-  mutate(FECHA_MIN = pmin(FIS, FECHA_CONSULTA, FECHA_ESTUDIO,FTM,FECHA_APERTURA, na.rm = TRUE))
-
-
-
-#columna año min y semana con la fecha min
-
-respi <- respi %>% 
-  mutate(SE_MIN=epiweek(FECHA_MIN))
-
-respi <- respi %>% 
-  mutate(ANIO_MIN=year(FECHA_MIN))
-
-
-#columna contador 1 (1 fila = 1 notificacion)
-respi <- respi %>% 
-  mutate(CANTIDAD=1) %>%
-  ungroup()
-
-
-#selecciono hasta la SE de mi BEM
-respi <- respi %>%
-  filter(ANIO_MIN < 2025 | (ANIO_MIN == 2025 & SE_MIN <= 5))
-
-
-
-
-
-
-# grafico evolutivo----------
-#armo una variable con ID del rdo para despues usarlo como fill en el gráfico
-
-respi <- respi %>% 
-  mutate(
-    RESULTADO_2 = case_when(
-      RESULTADO == "Positivo" ~ "Positivo/detectable",
-      RESULTADO == "Detectable" ~ "Positivo/detectable",
-      RESULTADO == "No detectable" ~ "Negativo/no detectable",
-      RESULTADO == "Negativo" ~ "Negativo/no detectable",
-      TRUE ~ "ver"))
-
-
-
-#ARMO UN ID POR SI ACASO
-respi <- respi %>% 
-  mutate(
-    ID_RDO = case_when(
-      RESULTADO == "Positivo" ~ "1",
-      RESULTADO == "Detectable" ~ "2",
-      RESULTADO == "No detectable" ~ "3",
-      RESULTADO == "Negativo" ~ "4",
-      TRUE ~ "ver"))
-
-
-
-
-#Armo la base solo con los positivos y detectables
-respi_posit <- respi %>% 
-  filter(duplicado=="NO", RESULTADO %in% c("Positivo", "Detectable"))
-    
-#hay un rdo que es "muestra no apta..." no la voy a considerar
-
-respi_evolutivo <- respi %>% 
-  group_by(SE_MIN, ANIO_MIN,, ID_RDO, RESULTADO_2) %>% 
-  filter(ID_RDO %in% c(1, 2, 3,4), ANIO_MIN >= 2022, duplicado=="NO" ) %>% 
-  summarize(casos = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>% 
-  mutate(ANIO_SE = paste(SE_MIN, ANIO_MIN, sep = "-")) %>% 
-  complete(SE_MIN = 1:max(SE_MIN, na.rm = TRUE), fill = list(casos = 0)) %>% 
-  ungroup() %>% 
-  arrange(ANIO_MIN, SE_MIN) %>% 
-  as.data.frame()
-
-respi_evolutivo <- respi_evolutivo %>% 
-  mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE)))
-
-
-
-
-#grafico
-respi_grafico_evolutivo <- respi_evolutivo %>% 
-  ggplot(aes(x = ANIO_SE, y = casos, fill=RESULTADO_2)) +
-  geom_bar(stat = "identity") +
-  scale_x_discrete(
-    breaks = levels(respi_evolutivo$ANIO_SE)[seq(1, length(levels(respi_evolutivo$ANIO_SE)), by = 6)],
-    expand = c(0, 0))
-  theme_minimal() +
-  labs(x = "semana",
-       y = "Casos de IRAG")
-respi_grafico_evolutivo
-
-
-
-#grafico con positivos y detectables
-
-respi_evolutivo2 <- respi_posit %>% 
-  group_by(SE_MIN, ANIO_MIN, ID_RDO, RESULTADO_2) %>% 
-  filter(ID_RDO %in% c(1, 2), ANIO_MIN >= 2022, duplicado=="NO" ) %>% 
-  summarize(casos = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>% 
-  mutate(ANIO_SE = paste(SE_MIN, ANIO_MIN, sep = "-")) %>% 
-  complete(SE_MIN = 1:max(SE_MIN, na.rm = TRUE), fill = list(casos = 0)) %>% 
-  ungroup() %>% 
-  arrange(ANIO_MIN, SE_MIN) %>% 
-  as.data.frame()
-
-
-respi_evolutivo2 <- respi_evolutivo2 %>% 
-  mutate(ANIO_SE = factor(ANIO_SE, levels = unique(ANIO_SE)))
-
-
-#grafico
-
-respi_grafico_evolutivo2 <- respi_evolutivo2 %>% 
-  ggplot(aes(x = ANIO_SE, y = casos)) +
-  geom_bar(stat = "identity") +
-  scale_x_discrete(
-    breaks = levels(respi_evolutivo$ANIO_SE)[seq(1, length(levels(respi_evolutivo$ANIO_SE)), by = 6)],
-    expand = c(0, 0))
-theme_minimal() +
-  labs(x = "semana",
-       y = "Casos de IRAG")
-respi_grafico_evolutivo2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# bajo la base para mriarla en excel 
-#write.csv(respi, "respi_chequeo.csv", row.names = FALSE)
-
-
-
-
-
-
-
- 
-#grupos de edad SE del BEM
-respi_edades <- respi %>% 
-  filter(duplicado=="NO", SE_MIN %in% c(SE_BEM), ANIO_MIN == ANIO_max) %>% 
-  group_by(GRUPO_ETARIO) %>%
-  mutate(GRUPO_ETARIO = as.factor(GRUPO_ETARIO)) %>% 
-  summarise(casos = n(), .groups = "drop")
-
-
-
-#cambiar los nombres
-
-
-#grafico
-respi_grafico_evolutivo <- respi_edades %>% 
-  ggplot(aes(x = GRUPO_ETARIO, y = casos)) +
-  geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(x = "Grupo Etario",
-       y = "Casos de IRAG")
-respi_grafico_evolutivo
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    FECHA_CONSULTA = convertir_a_fecha(FECHA_CONSULTA),
+    FIS = convertir_a_fecha(FIS),
+    FECHA_APERTURA = convertir_a_fecha(FECHA_APERTURA),
+    FECHA_ALTA_MEDICA = convertir_a_fecha(FECHA_ALTA_MEDICA),
+    FECHA_INTERNACION = convertir_a_fecha(FECHA_INTERNACION),
+    FECHA_CUI_INTENSIVOS = convertir_a_fecha(FECHA_CUI_INTENSIVOS),
+    FECHA_FALLECIMIENTO = convertir_a_fecha(FECHA_FALLECIMIENTO),
+    FECHA_NACIMIENTO = convertir_a_fecha(FECHA_NACIMIENTO),
+    FECHA_ESTUDIO = convertir_a_fecha(FECHA_ESTUDIO))
+
+
+###creo una nueva variable de fecha 
+VR_NOMINAL <- VR_NOMINAL %>% 
+  mutate(FECHA_CREADA = coalesce(FIS, FECHA_CONSULTA, FECHA_ESTUDIO, FECHA_APERTURA))
+
+
+resultado_algoritmo_1 <- algoritmo_1(data=VR_NOMINAL,
+                                     col_signos = "SIGNO_SINTOMA",
+                                     col_comorbilidades = "COMORBILIDAD",
+                                     col_determinacion= "DETERMINACION", 
+                                     col_resultado= "RESULTADO",
+                                     col_tipo_lugar =  "TIPO_LUGAR_OCURRENCIA",
+                                     col_antecedente = "ANTECEDENTE_EPIDEMIOLOGICO",
+                                     col_cobertura_social = "COBERTURA_SOCIAL"
+)
+
+VR_NOMINAL_IDEVENTOCASO <- resultado_algoritmo_1$data
+
+
+## Creo la clasificacion de virus (opcional)
+
+clasificar_virus <- function(x) {
+  case_when(
+    str_detect(x, "VSR") ~ "VSR",
+    str_detect(x, "SARS") ~ "SARS-CoV-2",
+    str_detect(x, "Influenza A") ~ "Influenza A",
+    is.na(x) | x == "" ~ "Sin determinación",
+    TRUE ~ "Otro"
+  )
+}
+
+## Identifico cuales son las columnas de deteminaciones, en este caso las que comienzan con "_DETERMINACION"
+columnas_determinacion <- names(VR_NOMINAL_IDEVENTOCASO) %>%
+  str_subset("^DETERMINACION_") %>%
+  setdiff(c("DETERMINACION_DICO",
+            "DETERMINACION_DICO_CENTINELA",
+            "DETERMINACION_SIN_DATO"))
+
+## Aplico la funcion creada
+resultado <- analizar_determinaciones(
+  data = VR_NOMINAL_IDEVENTOCASO, # Dataset tranformado
+  columnas_determinacion = columnas_determinacion,# columnas determinacion creado arriba
+  variable_agrupar = "SEPI_APERTURA",# variables de agrupacion principal
+  variable_cruce = "ANIO_EPI_APERTURA",# variables de agrupacion secundaria (opciona)
+  clasificar = clasificar_virus # Clasificacion de virus creada arriba, opcional. 
+)
+
+
+names(resultado)
+
+## hago un grafico con la tabla resultado 1
+
+
+# Primero transformamos a formato largo para poder graficar detectables y no detectables juntos
+resultado_influenza <- resultado %>%
+  filter(DETERMINACION == "Influenza A") %>%
+  pivot_longer(cols = c("Detectable", "No_detectable"), 
+               names_to = "Tipo_Resultado", 
+               values_to = "n") %>%
+  mutate(Tipo_Resultado = factor(Tipo_Resultado, levels = c("No_detectable", "Detectable")))
+
+
+# Gráfico
+ggplot(resultado_influenza, aes(x = as.numeric(SEPI_APERTURA), y = n, fill = Tipo_Resultado)) +
+  geom_col(position = "stack") +
+  facet_wrap(~ ANIO_EPI_APERTURA) +
+  scale_fill_manual(
+    values = c(
+      "No_detectable" = "#A9A9A9",  # gris
+      "Detectable" = "#D7263D"      # rojo
+    ),
+    name = "Resultado"
+  ) +
+  labs(
+    title = "Detección de Influenza A por semana y año",
+    x = "Semana epidemiológica",
+    y = "Número de testeos",
+    fill = "Resultado"
+  ) +
+  theme_minimal()+
+  theme(
+    legend.position = "bottom"
+  )
 

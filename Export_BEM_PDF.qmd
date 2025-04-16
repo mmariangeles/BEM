@@ -34,7 +34,7 @@ La última actualización del Manual de Normas y Procedimientos de Vigilancia y 
 **Modificaciones implementadas en los ENO**
 
 | Evento | Año de implementación | Modalidad actual de notificación |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | Parotiditis | 2023 | Nominal individualizada |
 | Internaciones por IRAG[^3] | 2023 | Nominal individualizada |
 | Lesiones en el hogar | 2023 | Sólo internaciones - agrupada |
@@ -74,29 +74,138 @@ Para el cálculo de las tasas se utiliza el total de población como denominador
 
 En cuanto a la categoría de persona, se toman diferentes estrategias para mostrar la distribución de los casos por edad, dado que dicha variable se halla disponible en la base de datos agrupada de clínica en grupos etarios predefinidos. Además, en determinados eventos se realizaron agrupaciones propias atendiendo a sus características clínicas y epidemiológicas. Estos nuevos grupos, se grafican en función de la evolución de la composición etaria por semanas epidemiológicas, a fin de poder valorar la existencia o no de estacionalidad en relación a este aspecto.
 
-Por último, en relación a la variable sexo, la misma se imputa a partir de los datos provenientes del Re-
-
-gistro Nacional de las Personas (ReNaPer). El tipo de registros disponibles no posibilita aún incorporar la noción de género.
+Por último, en relación a la variable sexo, la misma se imputa a partir de los datos provenientes del Registro Nacional de las Personas (ReNaPer). El tipo de registros disponibles no posibilita aún incorporar la noción de género.
 
 \newpage
 
-## Infecciones respiratorias agudas
+## **Infecciones respiratorias agudas**
 
-dss
+ACA INDICADOR TOTAL IRA CON VARIACION PORCENTUAL (no la división como en el bem)
 
-### Enfermedad tipo influenza
+En las semanas analizadas, se notificaron un total de OBJETO TOTAL infecciones respiratorias agudas a nivel provincial. Hubo una OBJETO DISMUNICION O AUMENTO del OBJETO VARIACION PORCENTUAL % en relación al mismo periodo del año anterior. Del total de consultas por infecciones respiratorias agudas notificadas al SNVS, ETI representó el OBJETO PORCENTAJE%, neumonía el OBJETO PORCENTAJE%, bronquiolitis el OBJETO PORCENTAJE% e IRAG el OBJETO PORCENTAJE%. ACÁ GRAFICO TREEMAP
 
-fddf
+GRAFICO IRAG
 
-### Neumonía
+### Casos de infecciones respiratorias agudas en atención ambulatoria por grupos etarios, según presentación clínica.
 
-sds
+Desde SE `r SE_min` hasta SE `r SE_max`/`r ANIO_max` . Provincia del Neuquén (n = `r`)
 
-### Bronquiolitis
+```{r}
 
-dffdfd
+```
 
-### Vigilancia universal de IRAG
+### 
+
+\newpage
+
+## **Enfermedad tipo influenza (ETI)**
+
+En las semanas analizadas, se notificaron un total de `r ETI_cantidad_SE_BEM` casos de ETI a nivel provincial. Hubo `r ETI_texto_variacion` del `r ETI_variacion_porcentual`% en relación al mismo periodo del año anterior.
+
+### Distribución temporal de casos de ETI por semana epidemiológica, según grupos etarios
+
+Desde SE 1/2020 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén (n = `r ETI_total_evolutivo`)
+
+```{r, echo=FALSE,fig.width=25, fig.height=15}
+ETI_grafico_grupoetario_acumulado
+```
+
+```{r, echo=FALSE,fig.width=25, fig.height=7}
+ETI_grafevolutivo
+
+```
+
+\newpage
+
+### Corredor endémico semanal de ETI[^6].
+
+[^6]: Todos los corredores presentados en este BEM son construidos en base a los datos correspondientes al período 2015 ‐ 2023, excluyendo los años pandémicos (2020 y 2021).
+
+`r ANIO_max` . Provincia del Neuquén.
+
+![](ETI_corredor.png){fig-align="center" width="513"}
+
+### Casos notificados de ETI por año.
+
+Desde SE 1/2022 hasta `r SE_max` /`r ANIO_max` . Provincia del Neuquén.
+
+```{r, echo=FALSE,warning=FALSE,fig.width=20,fig.height=7 }
+ETI_grafico_anios_V3
+
+```
+
+\newpage
+
+## Neumonía
+
+En las semanas analizadas, se notificaron un total de `r NEUMONIA_cantidad_SE_BEM` casos de Neumonía a nivel provincial. Hubo `r NEUMONIA_texto_variacion` del `r NEUMONIA_variacion_porcentual`% en relación al mismo periodo del año anterior.
+
+### Distribución temporal de casos de neumonía por semana epidemiológica, según grupos etarios
+
+Desde SE 1/2020 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén (n = `r NEUMONIA_total_evolutivo`)
+
+```{r, echo=FALSE,fig.width=25, fig.height=15}
+
+NEUMONIA_grafico_grupoetario_acumulado
+```
+
+```{r, echo=FALSE,warning=FALSE, fig.width=25, fig.height=7}
+NEUMONIA_grafevolutivo
+```
+
+\newpage
+
+### Corredor endémico semanal de neumonía.
+
+`r ANIO_max` . Provincia del Neuquén.
+
+![](NEUMONIA_corredor.png){width="524"}
+
+### Casos notificados de neumonía por año.
+
+Desde SE 1/2022 hasta `r SE_max` /`r ANIO_max` . Provincia del Neuquén.
+
+```{r, echo=FALSE,warning=FALSE,fig.width=20,fig.height=7}
+NAC_grafico_anios_V3
+```
+
+\newpage
+
+## Bronquiolitis
+
+En las semanas analizadas, se notificaron un total de 32 casos de bronquiolitis a nivel provincial. Hubo `r BQL_texto_variacion` del `r BQL_variacion_porcentual` % en relación al mismo periodo del año anterior.
+
+### Distribución temporal de casos de bronquiolitis por semana epidemiológica, según grupos etarios.
+
+Desde SE 1/2020 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén (n = `r BQL_total_evolutivo`)
+
+```{r, echo=FALSE,fig.width=33, fig.height=15}
+BQL_grafico_grupoetario_acumulado
+```
+
+```{r, echo=FALSE,warning=FALSE, fig.width=25, fig.height=7}
+BQL_grafevolutivo
+```
+
+\newpage
+
+### Corredor endémico semanal de bronquiolitis.
+
+`r ANIO_max` . Provincia del Neuquén.
+
+![](BQL_corredor.png){width="523"}
+
+### Casos notificados de bronquiolitis por año.
+
+Desde SE 1/2022 hasta `r SE_max` /`r ANIO_max` . Provincia del Neuquén.
+
+```{r, echo=FALSE,warning=FALSE,fig.width=20,fig.height=7}
+BQL_grafico_anios_V3
+```
+
+\newpage
+
+## Vigilancia universal de IRAG
 
 \newpage
 
@@ -147,9 +256,7 @@ Desde SE `r SE_min` hasta SE `r SE_max`/`r ANIO_max` . Provincia del Neuquén (n
 DA_grafico_regiones
 ```
 
-### Corredor endémico semanal. Diarrea aguda[^6].
-
-[^6]: Construido en base a los datos correspondientes al período 2015 - 2023, excluyendo los años pandémicos (2020 y 2021).
+### Corredor endémico semanal. Diarrea aguda.
 
 `r ANIO_max` . Provincia del Neuquén.
 
@@ -159,9 +266,17 @@ DA_grafico_regiones
 
 ## **Internaciones por lesiones en el hogar**
 
-```{r, echo=FALSE,fig.width=14,fig.height=6}
+```{r, echo=FALSE,fig.width=14,fig.height=2}
 library(grid)
 grid.draw(indicador_lesiones)
+```
+
+### Notificaciones de internaciones por lesiones en el hogar según mecanismo.
+
+Desde SE `r SE_min` hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r lesiones_hogar_SE_BEM`)
+
+```{r, echo=FALSE, warning=FALSE, fig.width=7,fig.height=1}
+lesiones_treemap
 ```
 
 ### Distribución temporal de internaciones por lesiones en el hogar por semana epidemiológica.
@@ -177,19 +292,25 @@ lesiones_grafico_evolutivo
 
 ## **Lesiones por mordedura de perro (ambulatorias)**
 
-```{r, echo=FALSE,fig.width=20,fig.height=6}
+```{r, echo=FALSE,fig.width=14,fig.height=2}
 grid.draw(indicador_mordedura)
+```
+
+### Clasificación de las mordeduras de perro (ambulatorias) según lugar de ocurrencia.
+
+Desde SE `r SE_min` hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r mordeduras_cantidad_SE_BEM`)
+
+```{r, echo=FALSE,fig.width=7,fig.height=2}
+mordeduras_treemap
 ```
 
 ### Distribución temporal de mordedura de perro por semana epidemiológica.
 
 Desde SE 21/2023 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r mordeduras_total`)
 
-```{r,echo=FALSE,fig.width=33, fig.height=17}
+```{r,echo=FALSE,fig.width=33, fig.height=15}
 mordeduras_grafico_evolutivo
 ```
-
-\newpage
 
 ### Incidencia acumulada de casos de mordedura de perro cada 10000 habitantes por año, según región.
 
@@ -203,20 +324,37 @@ mordedura_incidencia_grafico
 
 ## **Internaciones por siniestros viales**
 
-```{r, echo = FALSE , warning=FALSE, fig.width=20,fig.height=6}
-grid.draw(indicador_accidentes)
+```{r, echo = FALSE , warning=FALSE, fig.width=14,fig.height=2}
 indicador_accidentes
 ```
 
 En las semanas analizadas, se notificaron un total de `r siniestros_viales_SEBEM` internaciones por siniestros viales.
 
+### Internaciones por siniestros viales según ???
+
+Desde SE `r SE_min` hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r siniestros_viales_SEBEM`)
+
+```{r, echo=FALSE,fig.width=7,fig.height=2}
+siniestrosviales_treemap
+```
+
+\newpage
+
 ### Distribución temporal de internaciones por siniestros viales por semana epidemiológica.
 
 Desde SE 21/2023 hasta SE `r SE_max`/`r ANIO_max` . Provincia del Neuquén (n = `r siniestros_viales_total`)
 
-```{r,echo=FALSE}
+```{r,echo=FALSE, fig.width=33, fig.height=15}
 siniestros_viales_grafico_evolutivo
 
+```
+
+### Internaciones por siniestros viales por grupos etarios.
+
+Desde SE `r SE_min` hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r siniestros_viales_SEBEM`)
+
+```{r, echo=FALSE}
+siniestrosviales_grafico_grupoetario
 ```
 
 \newpage

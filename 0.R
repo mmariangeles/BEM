@@ -35,8 +35,13 @@ source("1_general.R")
 message("1_general.R ejecutado sin problemas. Pasar al siguiente source")
 
 
+#source("funciones.R")
 #source("2_respiratorias.R")
-message("2_respiratorias.R ejecutado sin problemas. Pasar al siguiente source")
+#message("2_respiratorias.R ejecutado sin problemas. Pasar al siguiente source")
+
+source("2_1_ETI.R")
+source("2_2_neumonia.R")
+source("2_3_bql.R")
 
 
 source("3_diarreas.R")
