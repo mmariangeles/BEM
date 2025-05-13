@@ -26,47 +26,48 @@ library(extrafont)
 #fonts()
 #font_import(prompt = FALSE)  # Escanea todas las fuentes del sistema
 
+#SOURCES
+
+#AGRUPADA. PREPARACION DEL DATASET AGRUPADA (POR EJ CON FILTROS Y SELECTOR DE SE DEL BEM)
+source("1_agrupada.R") #LISTO
 
 
-#correr las 2 lineas juntas, source y message. Seleccionar ambas y ctrl+enter o "Run".
-#si el codigo corrio correctamente, van a ver el message en la consola-
+#VR nominal. Acá se aplican las funciones y algoritmo para pasar de una base multirregistro a una de variables dicotómicas.
+source("2_VRNOMINAL.R") #LISTO
 
-source("1_general.R")
-message("1_general.R ejecutado sin problemas. Pasar al siguiente source")
-
-
-#source("funciones.R")
-#source("2_respiratorias.R")
-#message("2_respiratorias.R ejecutado sin problemas. Pasar al siguiente source")
-
-source("2_1_ETI.R")
-source("2_2_neumonia.R")
-source("2_3_bql.R")
+#indicador de eventos respi. Conjuga IRAG (nominal), BQL, ETI y NAC (agrupadas). También hay texto automatizado acá
+source("2A_Respi_indicador.R") #LISTO
 
 
-source("3_diarreas.R")
-message("3_diarreas.R ejecutado sin problemas. Pasar al siguiente source")
+#IRAG nominal. Gráficos de notificación por SE y grupos de edad. 
+source("2B_IRAG.R") #LISTO
 
+#ETI/NAC/BQL//AGRUPADA. Esto es para un gráfico de los 3 eventos juntos según grupo de edad y para texto automatizado
+source("1A_ETI_NAC_BQL.R") #LISTO
 
-#source("4_lesiones_hogar.R")
-source("4B_lesiones_hogar.R")
-message("4_lesiones_hogar.R ejecutado sin problemas. Pasar al siguiente source")
+#ETI//AGRUPADA
+source("1B_ETI.R") #LISTO
 
+#NAC//AGRUPADA
+source("1C_NAC.R") #LISTO
 
-source("5_mordeduras.R")
-message("5_mordeduras.R ejecutado sin problemas. Pasar al siguiente source")
+#BQL//AGRUPADA
+source("1D_BQL.R") #LISTO
 
+#DIARREA AGUDA//AGRUPADA
+source("1E_DA.R") #LISTO
 
-source("6_siniestros viales.R")
-message("6_siniestros viales.R ejecutado sin problemas. Pasar al siguiente source")
+#LESIONES EN EL HOGAR//AGRUPADA
+source("1F_lesiones_hogar.R") #LISTO
 
+#MORDEDURAS//AGRUPADA
+source("1G_mordeduras_perros.R") #LISTO
 
-#source("7_sifilis.R")
-message("7_sifilis.R ejecutado sin problemas. Pasar al siguiente source")
+#SINIESTROS VIALES//AGRUPADA
+source("1H_siniestros viales.R") #LISTO
 
-
-source("8_inmunoprevenibles.R")
-message("8_inmunoprevenibles.R ejecutado sin problemas. Pasar al siguiente source")
+#INMUNOPREVENIBLES//AGRUPADA
+source("1I_inmunoprevenibles.R")#LISTO
 
 
 
