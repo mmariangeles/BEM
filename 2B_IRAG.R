@@ -5,11 +5,22 @@
 
 VR_NOMINAL_SINDUPLICADOS<- as.data.frame(VRNOMINAL_EVENTOCASO)
 
+#se bem
+
+SE_BEM_IRAG <- c(10,11,12,13)
+
+#AÑO BEM
+AÑO_BEM_IRAG <-  2025
+
+
+#SEMANA MAXIMA DEL BEM
+max_SE_IRAG <- max(SE_BEM_IRAG)
 
 
 #selecciono hasta la SE de mi BEM
 VR_NOMINAL_SINDUPLICADOS <- VR_NOMINAL_SINDUPLICADOS %>%
-  filter(AÑO < 2025 | (AÑO == 2025 & SEPI_ <= 13))
+  filter(AÑO < AÑO_BEM_IRAG | (AÑO == AÑO_BEM_IRAG & SEPI_ %in% SE_BEM_IRAG))
+
 
 
 #armo una tabla con los casos notificados por SE y AÑO
@@ -71,8 +82,8 @@ vr_grafico_evolutivo
 #grafico por grupo de edad de COVID/IRA y UC-IRAG
   
   internado_fallec_COVID_IRAG <- VR_NOMINAL_SINDUPLICADOS %>%
-    filter(AÑO == ANIO_max,
-           SEPI_ == SE_BEM)%>% 
+    filter(AÑO == AÑO_BEM_IRAG,
+           SEPI_ == SE_BEM_IRAG)%>% 
     group_by(SEPI_,AÑO, GRUPO_ETARIO, EVENTO) %>% 
     summarise(casos = n(), .groups = "drop") %>% 
     mutate(AÑO_SE = paste(SEPI_, AÑO, sep = "-")) %>% 
@@ -167,8 +178,8 @@ vr_grafico_evolutivo
       axis.title.x = element_text(size = 25),
       axis.title.y = element_text(size = 25),
       strip.text = element_text(size = 25),
-      legend.text = element_text(size = 27),
-      legend.title = element_text(size = 27),
+      legend.text = element_text(size = 25),
+      legend.title = element_text(size = 25),
       panel.border = element_blank(),
       axis.line = element_blank(),
       axis.ticks = element_blank(),
@@ -181,8 +192,8 @@ vr_grafico_evolutivo
   
 #objeto edades para covid-IRA------
   edades_COVID_IRA <- VR_NOMINAL_SINDUPLICADOS %>%
-    filter(AÑO == ANIO_max,
-           SEPI_ == SE_BEM,
+    filter(AÑO == AÑO_BEM_IRAG,
+           SEPI_ == SE_BEM_IRAG,
            ID_SNVS_EVENTO == 330) %>%
     group_by(EDAD_ACTUAL, FECHA_NACIMIENTO, FECHA_APERTURA) %>%
     summarise(casos = n(), .groups = "drop") %>%
@@ -219,17 +230,17 @@ vr_grafico_evolutivo
 #edad maxima 
   edad_max_covid_ira <- max(edades_COVID_IRA$edad_calculada_label)
   
-  view(edad_max_covid_ira)
+ # view(edad_max_covid_ira)
 
   #promedio de edad 
   edad_promedio_covid_ira <- round(mean(edades_COVID_IRA$EDAD_ACTUAL, na.rm = TRUE), 1)
-  view(edad_promedio_covid_ira)
+ # view(edad_promedio_covid_ira)
   
   
 # objeto edades UC-IRAG----
   edades_UC_IRAG <- VR_NOMINAL_SINDUPLICADOS %>%
-    filter(AÑO == ANIO_max,
-           SEPI_ == SE_BEM,
+    filter(AÑO == AÑO_BEM_IRAG,
+           SEPI_ == SE_BEM_IRAG,
            ID_SNVS_EVENTO == 143) %>%
     group_by(EDAD_ACTUAL, FECHA_NACIMIENTO, FECHA_APERTURA) %>%
     summarise(casos = n(), .groups = "drop") %>%
@@ -266,11 +277,11 @@ vr_grafico_evolutivo
   #edad maxima 
   edad_max_UC_IRAG <- max(edades_UC_IRAG$edad_calculada_label)
   
-  view(edad_max_UC_IRAG)
+ # view(edad_max_UC_IRAG)
   
   #promedio de edad 
   edad_promedio_UC_IRAG <- round(mean(edades_UC_IRAG$EDAD_ACTUAL, na.rm = TRUE), 1)
-  view(edad_promedio_UC_IRAG)  
+ # view(edad_promedio_UC_IRAG)  
   
   
   

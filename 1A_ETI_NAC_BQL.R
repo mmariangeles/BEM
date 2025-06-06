@@ -61,9 +61,9 @@ BQL_ETI_NAC_grafico_grupoetario3 <- grupo_edad_NAC_BQL_ETI %>%
   geom_bar(stat = "identity", width = 0.5) +
   labs(x = "Grupos de edad", y = "Casos notificados", fill = "Evento") +
   scale_fill_manual(values = c(
-    "Neumonía" = "#32CD32",
-    "Enfermedad tipo influenza (ETI)" = "#FF7256",
-    "Bronquiolitis" = "#7557ea" ),
+    "Neumonía" = "#2f4858",
+    "Enfermedad tipo influenza (ETI)" = "#007463",
+    "Bronquiolitis" = "#63dda5" ),
     breaks = c("Enfermedad tipo influenza (ETI)","Bronquiolitis","Neumonía")) +
   coord_flip() +
   theme_classic() +
@@ -84,8 +84,7 @@ ETI_gruposedad <- respi_agrupada %>%
   summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>%  
   mutate(
     Porcentaje_crudo = Total / sum(Total),
-    Porcentaje = round(Porcentaje_crudo * 100)
-  )
+    Porcentaje = round(Porcentaje_crudo * 100))
 
 ETI_cantidad <- sum(ETI_gruposedad$Total)
 

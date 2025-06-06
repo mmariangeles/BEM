@@ -9,16 +9,16 @@ library(ggplot2)
 library(readxl)
 library(lubridate)
 library(stringr)
-#install.packages("gridExtra")
+#install.packages("gridExtra") #CORRERLO EN LA CONSOLA
 library(gridExtra)
-#install.packages("treemapify")
+#install.packages("treemapify") #CORRERLO EN LA CONSOLA
 library(treemapify)
-#install.packages("ggtext")
+#install.packages("ggtext") #CORRERLO EN LA CONSOLA
 library(ggtext)
 
 
 #cargo las fuentes instaladas en mi sistema para poder utilizar la del ministerio---------
-#install.packages("extrafont")
+#install.packages("extrafont") #CORRERLO EN LA CONSOLA
 library(extrafont)
 
 
@@ -42,6 +42,9 @@ source("2A_Respi_indicador.R") #LISTO
 #IRAG nominal. Gráficos de notificación por SE y grupos de edad. 
 source("2B_IRAG.R") #LISTO
 
+#vigilancia universal. Notificación nominal
+source("2C_vigilancia_universal.R")
+
 #ETI/NAC/BQL//AGRUPADA. Esto es para un gráfico de los 3 eventos juntos según grupo de edad y para texto automatizado
 source("1A_ETI_NAC_BQL.R") #LISTO
 
@@ -49,7 +52,7 @@ source("1A_ETI_NAC_BQL.R") #LISTO
 source("1B_ETI.R") #LISTO
 
 #NAC//AGRUPADA
-source("1C_NAC.R") #LISTO
+source("NAC.R")
 
 #BQL//AGRUPADA
 source("1D_BQL.R") #LISTO
@@ -64,7 +67,7 @@ source("1F_lesiones_hogar.R") #LISTO
 source("1G_mordeduras_perros.R") #LISTO
 
 #SINIESTROS VIALES//AGRUPADA
-source("1H_siniestros viales.R") #LISTO
+source("Siniestros_viales.R") #LISTO
 
 #INMUNOPREVENIBLES//AGRUPADA
 source("1I_inmunoprevenibles.R")#LISTO

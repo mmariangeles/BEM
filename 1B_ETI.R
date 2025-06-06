@@ -90,7 +90,6 @@ ETI_tabla_grupoetario_acumulado <- ETI_tabla_grupoetario_acumulado %>%
 
 # Crear gráfico de columnas apiladas
 ETI_grafico_grupoetario_acumulado <- ETI_tabla_grupoetario_acumulado %>% 
-  #  filter(!is.na(GRUPO_2)) %>%  # Eliminar filas con NA en GRUPO_2
   ggplot(aes(x = ANIO_SE, y = Total, fill = GRUPO_2)) +
   geom_bar(stat = "identity", position = "fill") + #position fill es para apilado al 100%
   scale_x_discrete(

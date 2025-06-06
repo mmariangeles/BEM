@@ -47,9 +47,6 @@ VR_NOMINAL <- VR_NOMINAL %>%
 
 
 
-
-
-
 ############# SECCIÓN 1:    FUNCIONES  ######################################
 
 #==================================================================
@@ -331,8 +328,15 @@ determinacion_UCIRAG <- c(
   "Genoma viral de Influenza A H3N2",
   "Genoma viral de Influenza A H1N1pdm",
   "Genoma viral de Influenza B, linaje Victoria",
-  "Genoma viral de Influenza"
-)
+  "Genoma viral de Influenza",
+  "Genoma viral de Parainfluenza 1",
+  "Genoma viral de Parainfluenza 2",
+  "Genoma viral de Parainfluenza 3",
+  "Genoma viral de Parainfluenza 4")
+
+#grep("Parainfluenza", colnames(VRNOMINAL_EVENTOCASO), value = TRUE)
+
+
 
 # Paso 1: Verificamos qué columnas de 'columnas_centinela' existen en el dataframe
 columnas_prefijadas <- paste0("DETERMINACION_", determinacion_UCIRAG)
@@ -377,9 +381,8 @@ VRNOMINAL_EVENTOCASO<- VRNOMINAL_EVENTOCASO%>%
       length(columnas_existentes) > 0 &
         rowSums(across(all_of(columnas_existentes),
                        ~ str_to_lower(.) %in% c("negativo", "no detectable"))) > 0 ~ "0",
-      TRUE ~ "99"
-    )
-  )
+      TRUE ~ "99"))
+
 
 
 

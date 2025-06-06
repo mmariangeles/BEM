@@ -34,7 +34,7 @@ La última actualización del Manual de Normas y Procedimientos de Vigilancia y 
 **Modificaciones implementadas en los ENO**
 
 | Evento | Año de implementación | Modalidad actual de notificación |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Parotiditis | 2023 | Nominal individualizada |
 | Internaciones por IRAG[^3] | 2023 | Nominal individualizada |
 | Lesiones en el hogar | 2023 | Sólo internaciones - agrupada |
@@ -80,21 +80,57 @@ Por último, en relación a la variable sexo, la misma se imputa a partir de los
 
 ## **Infecciones respiratorias agudas**
 
-ACA INDICADOR TOTAL IRA CON VARIACION PORCENTUAL (no la división como en el bem)
-
-En las semanas analizadas, se notificaron un total de OBJETO TOTAL infecciones respiratorias agudas a nivel provincial. Hubo una OBJETO DISMUNICION O AUMENTO del OBJETO VARIACION PORCENTUAL % en relación al mismo periodo del año anterior. Del total de consultas por infecciones respiratorias agudas notificadas al SNVS, ETI representó el OBJETO PORCENTAJE%, neumonía el OBJETO PORCENTAJE%, bronquiolitis el OBJETO PORCENTAJE% e IRAG el OBJETO PORCENTAJE%. ACÁ GRAFICO TREEMAP
-
-GRAFICO IRAG
-
-### Casos de infecciones respiratorias agudas en atención ambulatoria por grupos etarios, según presentación clínica.
-
-Desde SE `r SE_min` hasta SE `r SE_max`/`r ANIO_max` . Provincia del Neuquén (n = `r`)
-
-```{r}
-
+```{r, echo=FALSE, fig.width=14, fig.height=2}
+indicador_IRA
 ```
 
-### 
+Se notificaron un total de `r total_indicador` infecciones respiratorias agudas (IRA) a nivel provincial. Esto rempresenta `r IRA_texto_variacion` del `r RESPI_variacion_porcentual_texto` en relación al mismo periodo del año anterior.
+
+### Notificaciones de IRA TITULO
+
+```{r, echo=FALSE, warning=FALSE, fig.width=7,fig.height=2}
+IRA_treemap 
+```
+
+El mayor porcentaje de casos notificados es de `r evento1` , con el `r porcentaje1` %. Luego, se ubican las `r evento2` con el `r porcentaje2` %, las `r evento3` y `r evento4` con el `r porcentaje3` % y `r porcentaje4` % respectivamente.
+
+\newpage
+
+### Distribución temporal de casos notificados de internados y/o fallecidos por COVID o IRA y por UC[^6]-IRAG semana epidemiológica.
+
+[^6]: UC: unidad centinela
+
+Desde SE `r VR_min_SE` /`r VR_min_anio` hasta SE `r SE_max`/`r ANIO_max` .Provincia del Neuquén (n= `r VR_total_evolutivo`)
+
+```{r, echo=FALSE,fig.width=20, fig.height=8}
+vr_grafico_evolutivo
+```
+
+### Casos notificados de internados y/o fallecidos por COVID o IRA y por UC-IRAG por grupos etarios.
+
+Desde SE `r SE_min` hasta SE `r SE_max`/`r ANIO_max` . Provincia del Neuquén (n = `r COVID_IRA_UCIRAG`)
+
+```{r, echo=FALSE,fig.width=20, fig.height=8}
+VR_grafico_grupoetario4
+```
+
+La edad mínima de las personas internadas y/o fallecidas por COVID-IRA es `r edad_min_covid_ira` y la máxima `r edad_max_covid_ira`. El promedio de edad es `r edad_promedio_covid_ira` años. Por otro lado, en lo que respecta a UC-IRAG, la edad mínima es `r edad_min_UC_IRAG` y la máxima `r edad_max_UC_IRAG`. El promedio de edad es `r edad_promedio_UC_IRAG` años.
+
+\newpage
+
+### Casos de infecciones respiratorias agudas en atención ambulatoria por grupos etarios, según presentación clínica
+
+Desde SE `r SE_min` / `r ANIO_max` hasta SE `r SE_max` / `r ANIO_max` . Provincia del Neuquén (n = `r cant_NAC_BQL_ETI`)
+
+```{r, echo=FALSE,fig.width=25, fig.height=10}
+BQL_ETI_NAC_grafico_grupoetario3
+```
+
+Los casos de ETI se concentran principalmente en el grupo etario de `r ETI_grupoedad_max`, representando el `r ETI_porcentaje_max` % (N=`r ETI_grupoedad_max_cantidad`) de los casos notificados de este evento (N=`r ETI_cantidad`). El grupo poblacional en el que se notificaron la menor cantidad de casos es `r ETI_grupoedad_min` (N=`r ETI_grupoedad_min_cantidad`) casos notificados.
+
+En cuanto a los casos de neumonía notificados en las semanas de este boletín (N=`r NAC_cantidad`), el grupo etario que prevalece es el de `r NAC_grupoedad_max` , con el `r NAC_porcentaje_max` % de los casos notificados (N=`r NAC_grupoedad_max_cantidad`). El grupo de edad de `r NAC_grupoedad_min` aporta la menor cantidad de casos notificados (N=`r NAC_grupoedad_min_cantidad`).
+
+Por último, los casos notificados de bronquiolitis se concentran en infancias de `r BQL_grupoedad_max`, siendo el `r BQL_porcentaje_max` % (N=`r BQL_grupoedad_max_cantidad`) del total (N=`r BQL_cantidad`).
 
 \newpage
 
@@ -117,9 +153,9 @@ ETI_grafevolutivo
 
 \newpage
 
-### Corredor endémico semanal de ETI[^6].
+### Corredor endémico semanal de ETI[^7].
 
-[^6]: Todos los corredores presentados en este BEM son construidos en base a los datos correspondientes al período 2015 ‐ 2023, excluyendo los años pandémicos (2020 y 2021).
+[^7]: Todos los corredores presentados en este BEM son construidos en base a los datos correspondientes al período 2015 ‐ 2023, excluyendo los años pandémicos (2020 y 2021).
 
 `r ANIO_max` . Provincia del Neuquén.
 
@@ -173,7 +209,7 @@ NAC_grafico_anios_V3
 
 ## Bronquiolitis
 
-En las semanas analizadas, se notificaron un total de 32 casos de bronquiolitis a nivel provincial. Hubo `r BQL_texto_variacion` del `r BQL_variacion_porcentual` % en relación al mismo periodo del año anterior.
+En las semanas analizadas, se notificaron un total de `r BQL_cantidad_SE_BEM` casos de bronquiolitis a nivel provincial. Hubo `r BQL_texto_variacion` del `r BQL_variacion_porcentual` % en relación al mismo periodo del año anterior.
 
 ### Distribución temporal de casos de bronquiolitis por semana epidemiológica, según grupos etarios.
 
@@ -206,6 +242,42 @@ BQL_grafico_anios_V3
 \newpage
 
 ## Vigilancia universal de IRAG
+
+### Distribución temporal de determinaciones positivas en pacientes internados y/o fallecidos según agente etiológico por semana epidemiológica
+
+Desde SE 51/2023 hasta SE `r SE_max` /`r ANIO_max`. Provincia del Neuquén (n = `r cant_vigilancia_universal`).
+
+```{r, echo=FALSE,warning=FALSE,fig.width=33,fig.height=15}
+grafico_vigilancia_universal_evolutivo
+```
+
+### Distribución temporal de determinaciones positivas de influenza en pacientes internados y/o fallecidos según tipo y subtipo por semana epidemiológica.
+
+Desde SE 51/2023 hasta SE `r SE_max` /`r ANIO_max`. Provincia del Neuquén (n = `r cant_influenza`).
+
+```{r, echo=FALSE,warning=FALSE,fig.width=33,fig.height=11}
+grafico_influenza
+```
+
+\newpage
+
+### Porcentaje de positividad de SARS-CoV-2, VSR e Influenza en internados y/o fallecidos por semana epidemiológica
+
+Desde SE 49/2023 hasta SE `r SE_max` /`r ANIO_max`. Provincia del Neuquén.
+
+```{r, echo=FALSE,warning=FALSE, fig.width=25,fig.height=9}
+grafico_positividad_lineas
+```
+
+En lo que respecta a la circulación de influenza, durante las primeras 15 semanas de 2024, no se detectaron casos. La mayor concentración de circulación fue entre las SE 19 y 27, siendo el mayor porcentaje de positividad 5,9% en la SE 24. En el resto de las semanas del año, la circulación está presente, con porcentajes de positividad menores al 2%.
+
+`r texto_analisis_FLU`
+
+En el caso del VSR, la mayor concentración de circulación fue a partir de la SE 22, extendiéndose hasta la SE 43. El mayor porcentaje fue en la SE31, con el 8,4%.
+
+`r texto_analisis_VSR`
+
+En cuanto al SARS-CoV-2 fue elevada en las primeras 10 semanas, siendo el mayor porcentaje de positividad en la SE6 con el 15%. `r texto_analisis_COVID`
 
 \newpage
 
@@ -260,7 +332,7 @@ DA_grafico_regiones
 
 `r ANIO_max` . Provincia del Neuquén.
 
-![](DA_corredor.png){fig-align="center" width="513"}
+![](DA_corredor.png){fig-align="center" width="536"}
 
 \newpage
 
@@ -275,7 +347,7 @@ grid.draw(indicador_lesiones)
 
 Desde SE `r SE_min` hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r lesiones_hogar_SE_BEM`)
 
-```{r, echo=FALSE, warning=FALSE, fig.width=7,fig.height=1}
+```{r, echo=FALSE, warning=FALSE, fig.width=7,fig.height=2}
 lesiones_treemap
 ```
 
@@ -283,7 +355,7 @@ lesiones_treemap
 
 Desde SE 21/2023 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén. Provincia del Neuquén (n = `r lesiones_total`)
 
-```{r, echo=FALSE,fig.width=12, fig.height=7}
+```{r, echo=FALSE,fig.width=13, fig.height=5}
 lesiones_grafico_evolutivo
 
 ```
@@ -359,34 +431,6 @@ siniestrosviales_grafico_grupoetario
 
 \newpage
 
-## **Sífilis**
-
-indicador
-
-### Distribución temporal de casos de sífilis por semana epidemiológica.
-
-Desde SE 1/2022 hasta SE OBJETO SE MAX/ AÑO MAX. Provincia del Neuquén (n = OBJETO CNATIDAD)
-
-ACÁ VA EL GRAFICO
-
-El gráfico describe la distribución temporal absoluta de los casos notificados en la población general, organizados según la fecha mínima (priorizando el orden de inicio de síntomas, consulta, toma de muestra y apertura). Es relevante señalar que el aumento observado desde la SE 1/2023 podría no reflejar un verdadero incremento en los casos.
-
-En cambio, este aumento podría atribuirse a una mejora en el registro, en parte como resultado de un cambio en la modalidad de recolección de datos.
-
-### Casos de sífilis por grupo etario, según sexo consignado en el DNI.
-
-Desde SE OBJETO SEminbem hasta SE OBJETO SEmax/ANIO max. Provincia del Neuquén (n = OBJETO CNATIDAD)
-
-GRAFICO
-
-Se observa que la sífilis en el período bajo análisis del año OBJETO ANIO_MAX 2024 afecta principalmente a los grupos etarios de OBJETO GRUPOS MAXIMOS 25 a 34 años y de 20 a 24 años. **A continuación, en términos de incidencia, encontramos el grupo de 45 a 65 años. ??? el grafico no es de incidencia. hay que borrarlo.**
-
-### Distribución temporal de casos de sífilis por semana epidemiológica, según grupos de edad.
-
-Desde SE 1/2022 hasta SE OBJETO SE MAX/ AÑO MAX. Provincia del Neuquén (n = OBJETO CNATIDAD)
-
-\newpage
-
 ## **Infecciones inmunoprevenibles**
 
 ```{r, echo=FALSE,fig.width=14,fig.height=2}
@@ -395,9 +439,9 @@ indicador_varicela
 
 En las semanas analizadas, se notificaron un total de `r varicela_SEBEM` casos de varicela a nivel provincial. La variación porcentual es del `r varicela_variacion_porcentual` % con respecto al mismo periodo del año anterior.
 
-### Distribución temporal de casos de infecciones inmunoprevenibles por semana epidemiológica, según tipo de infección.[^7]
+### Distribución temporal de casos de infecciones inmunoprevenibles por semana epidemiológica, según tipo de infección.[^8]
 
-[^7]: A partir de la SE 30 del 2023, el evento parotiditis cambió la modalidad de registro de agrupada a nominal.
+[^8]: A partir de la SE 30 del 2023, el evento parotiditis cambió la modalidad de registro de agrupada a nominal.
 
 Desde SE 1/2020 hasta SE `r SE_max` /`r ANIO_max` . Provincia del Neuquén (n = `r IP_total` )
 

@@ -1,6 +1,86 @@
-library(data.table)
+
+#================================================================
+#------------------- Librerías----------------------------------
+#================================================================
 
 
+
+library(data.table)    # Para `setDT()` y operaciones rápidas
+library(dplyr)         # Para manipulación de datos (`mutate`, `group_by`, etc.)
+library(tidyr)         # Para `pivot_longer`
+library(stringr)       # Para `str_detect`, `str_subset`, `str_replace`
+library(ggplot2)       # Para la visualización
+library(readxl)        # para lectura de datos en excel
+library(readr)         # para lectura de datos 
+library(lubridate)     # para trabajo con fechas
+library(highcharter)   # Pra gráficos interactivos
+
+
+
+################################################################
+#------ACCIÓN-------- > EDITAR PARA CARGAR LA BASE-----------------
+################################################################
+
+
+
+# Impotación de NQN VR nominal
+
+VR_NOMINAL <- fread(
+  "VR_NOMINAL_Neuquen.csv",
+  sep = ";",
+  encoding = "Latin-1",
+  na.strings = c("", "*SIN DATO* (*SIN DATO*)", "*sin dato*", "sin dato", "SIN DATO"))
+
+
+#  VR_NOMINAL <- read_excel("VR_NOMINAL_Neuquen.xlsx")
+
+#filtro ID prov INDEC residencia = 58
+VR_NOMINAL <- VR_NOMINAL %>% 
+  filter(ID_PROV_INDEC_RESIDENCIA == 58)
+
+
+############# SECCIÓN 1:    FUNCIONES  ######################################
+
+#==================================================================
+# ------------------ FUNCIÓN PARA FECHAS --------------------------
+#==================================================================
+
+# Función para convertir a fecha solo si es necesario
+convertir_a_fecha <- function(columna) {
+  if (!inherits(columna, "Date")) {  # Verifica si la columna no es de tipo Date
+    return(as.Date(columna, format="%d/%m/%Y")) 
+  } else {
+    return(columna)  # Si ya es Date, la deja como está
+  }
+}
+
+
+# Convertir las columnas de IDate a Date
+VR_NOMINAL <- VR_NOMINAL %>%
+  mutate(
+    FECHA_CONSULTA = as.Date(FECHA_CONSULTA),
+    FIS = as.Date(FIS),
+    FECHA_APERTURA = as.Date(FECHA_APERTURA),
+    FECHA_ALTA_MEDICA = as.Date(FECHA_ALTA_MEDICA),
+    FECHA_INTERNACION = as.Date(FECHA_INTERNACION),
+    FECHA_CUI_INTENSIVOS = as.Date(FECHA_CUI_INTENSIVOS),
+    FECHA_FALLECIMIENTO = as.Date(FECHA_FALLECIMIENTO),
+    FECHA_NACIMIENTO = as.Date(FECHA_NACIMIENTO),
+    FECHA_ESTUDIO = as.Date(FECHA_ESTUDIO)
+  ) %>%
+  mutate(
+    FECHA_ = coalesce(FIS, FECHA_CONSULTA, FECHA_ESTUDIO, FECHA_APERTURA),
+    AÑO = year(FECHA_),
+    SEPI_ = epiweek(FECHA_)
+  )
+
+
+#================================================================
+#------------------- FUNCIÓN COMPLEMENTARIA----------------------
+#================================================================
+
+
+# Cargo las funciones
 evaluar_determinaciones <- function(df, fecha_col) {
   # Identificar columnas que comienzan con 'DETERMINACION_'
   cols_determinacion <- grep("^DETERMINACION_", names(df), value = TRUE)
@@ -38,8 +118,14 @@ evaluar_determinaciones <- function(df, fecha_col) {
 }
 
 
+#================================================================
+#------------------- FUNCIÓN PRINCIPAL---------------------------
+#================================================================
+
+
+# Función principal que ejecuta el algoritmo sobre los datos
 algoritmo_1 <- function(data, col_signos, col_comorbilidades, col_determinacion,
-                                      col_resultado, col_tipo_lugar, col_antecedente, col_cobertura_social) {
+                        col_resultado, col_tipo_lugar, col_antecedente, col_cobertura_social) {
   # Convertir el dataset a data.table para mejorar el rendimiento
   setDT(data)
   
@@ -121,142 +207,372 @@ algoritmo_1 <- function(data, col_signos, col_comorbilidades, col_determinacion,
   ))
 }
 
+#================================================================
+#----------------- FUNCIÓN PARA ANALISIS POR VIRUS---------------
+#================================================================
 
-## Funcion para fecha
-
-# Función para convertir a fecha solo si es necesario
-convertir_a_fecha <- function(columna) {
-  if (!inherits(columna, "Date")) {  # Verifica si la columna no es de tipo Date
-    return(as.Date(columna, format="%d/%m/%Y")) 
-  } else {
-    return(columna)  # Si ya es Date, la deja como está
-  }
-}
-
-edad_max <- 110
-
-procesar_edad <- function(dataset) {
-  # Convertir fechas a formato Date si no lo están
-  #dataset$FECHA_NACIMIENTO <- as.Date(dataset$FECHA_NACIMIENTO, format = "%Y-%d-%m")
-  #dataset$FECHA_CREADA <- as.Date(dataset$FECHA_CREADA, format = "%d-%m-%Y")
-  
-  # Calcular edad en años para todos los casos, redondeando hacia abajo
-  dataset$EDAD_ANOS <- as.numeric(difftime(dataset$FECHA_CREADA, dataset$FECHA_NACIMIENTO, units = "days")) %/% 365.25
-  
-  # Calcular edad inicial en años para identificar casos extremos
-  dataset$EDAD <- dataset$EDAD_ANOS
-  
-  # Identificar casos extremos (edades negativas o mayores a 110)
-  casos_extremos <- dataset$EDAD < 0 | dataset$EDAD > edad_max
-  
-  # Asignar NA a los valores extremos para revisión
-  dataset$EDAD[casos_extremos] <- NA
-  
-  # Calcular edades en meses para menores de un año
-  dataset$EDAD_MESES <- as.numeric(difftime(dataset$FECHA_CREADA, dataset$FECHA_NACIMIENTO, units = "days")) %/% 30.44
-  
-  # Crear variable UNIEDAD: 1 para meses, 2 para años
-  dataset$UNIEDAD <- ifelse(dataset$EDAD_MESES < 12, 1, 2)
-  
-  # Ajustar EDAD para reflejar edades en meses si corresponde
-  dataset$EDAD <- ifelse(dataset$UNIEDAD == 1, dataset$EDAD_MESES, dataset$EDAD)
-  
-  # Crear grupos etarios
-  dataset$GRUPO_ETARIO2 <- dplyr::case_when(
-    dataset$UNIEDAD == 1 & dataset$EDAD < 6 ~ "Menor de 6 meses",
-    dataset$UNIEDAD == 1 & dataset$EDAD >= 6 & dataset$EDAD <= 12 ~ "De 6 meses a 1 año",
-    dataset$UNIEDAD == 2 &  dataset$EDAD >= 2 & dataset$EDAD <= 4 ~ "De 2 a 4 años",
-    dataset$EDAD >= 5 & dataset$EDAD <= 9 ~ "De 5 a 9 años",
-    dataset$EDAD >= 5 & dataset$EDAD <= 9 ~ "De 5 a 9 años",
-    dataset$EDAD >= 10 & dataset$EDAD <= 14 ~ "De 10 a 14 años",
-    dataset$EDAD >= 15 & dataset$EDAD <= 19 ~ "De 15 a 19 años",
-    dataset$EDAD >= 20 & dataset$EDAD <= 24 ~ "De 20 a 24 años",
-    dataset$EDAD >= 25 & dataset$EDAD <= 29 ~ "De 25 a 29 años",
-    dataset$EDAD >= 30 & dataset$EDAD <= 34 ~ "De 30 a 34 años",
-    dataset$EDAD >= 35 & dataset$EDAD <= 39 ~ "De 35 a 39 años",
-    dataset$EDAD >= 40 & dataset$EDAD <= 44 ~ "De 40 a 44 años",
-    dataset$EDAD >= 45 & dataset$EDAD <= 49 ~ "De 45 a 49 años",
-    dataset$EDAD >= 50 & dataset$EDAD <= 54 ~ "De 50 a 54 años",
-    dataset$EDAD >= 55 & dataset$EDAD <= 59 ~ "De 55 a 59 años",
-    dataset$EDAD >= 60 & dataset$EDAD <= 64 ~ "De 60 a 64 años",
-    dataset$EDAD >= 65 & dataset$EDAD <= 69 ~ "De 65 a 69 años",
-    dataset$EDAD >= 70 & dataset$EDAD <= 74 ~ "De 70 a 74 años",
-    dataset$EDAD >= 75 & dataset$EDAD <= 79 ~ "De 75 a 79 años",
-    dataset$EDAD >= 80 & dataset$EDAD <= 84 ~ "De 80 a 84 años",
-    dataset$EDAD >= 85 & dataset$EDAD <= 89 ~ "De 85 a 89 años",
-    dataset$EDAD >= 90 ~ "Mayores de 90 años"
-  ) 
-  
-  dataset$GRUPO_ETARIO2 = factor(dataset$GRUPO_ETARIO2, levels = c(
-    "Menor de 6 meses",
-    "De 6 meses a 1 año",
-    "De 2 a 4 años",
-    "De 5 a 9 años",
-    "De 10 a 14 años",
-    "De 15 a 19 años",
-    "De 20 a 24 años",
-    "De 25 a 29 años",
-    "De 30 a 34 años",
-    "De 35 a 39 años",
-    "De 40 a 44 años",
-    "De 45 a 49 años",
-    "De 50 a 54 años",
-    "De 55 a 59 años",
-    "De 60 a 64 años",
-    "De 65 a 69 años",
-    "De 70 a 74 años",
-    "De 75 a 79 años",
-    "De 80 a 84 años",
-    "De 85 a 89 años",
-    "Mayores de 90 años"
-  ))
-  
-  # Eliminar la variable auxiliar EDAD_MESES
-  dataset$EDAD_MESES <- NULL
-  
-  # Crear una tabla auxiliar para calcular diff
-  dataset <- dataset %>% 
-    mutate(diff = EDAD_ANOS - EDAD_APERTURA)
-  
-  # Crear el objeto mensaje_3 con los IDEVENTOCASO donde diff > 1 o diff < -1
-  mensaje <- paste0(
-    "ID de Casos que presentan mas de 1 año de difencia entre edad geenrada por el sistema y la edad codificada en el algoritmo.Para mas info ver XXX",
-    paste(dataset$IDEVENTOCASO[(dataset$diff > 1 | dataset$diff < -1)& !is.na(dataset$IDEVENTOCASO)], collapse = ", ")
-  )
-  
-  mensaje2 <- paste0("ID de registros con edades por fuera del rango Especificado (0-",edad_max,"). IDEVENTOCASO:",dataset$IDEVENTOCASO[casos_extremos])
-  # Retornar el dataset procesado y el mensaje
-  list(dataset = dataset, mensaje4 = mensaje, mensaje5 = mensaje2)
-}
-
-## Nueva fn para analizar el nuevo dataset obtenido: ------
-
+# Función para amnalizar determinaciones
 analizar_determinaciones <- function(data, 
                                      columnas_determinacion,
                                      variable_agrupar,
                                      variable_cruce = NULL,
                                      clasificar = NULL) {
+  
   data_largo <- data %>%
     pivot_longer(cols = all_of(columnas_determinacion), 
                  names_to = "Tipo_Determinacion", 
                  values_to = "Resultado")
+  
   # Agrupar determinaciones usando la función que define la categoría
   data_largo <- data_largo %>%
     mutate(DETERMINACION = if (!is.null(clasificar)) clasificar(Tipo_Determinacion) else Tipo_Determinacion)
+  
+  
   # Definir agrupadores
   agrupadores <- c(variable_agrupar, if (!is.null(variable_cruce)) variable_cruce, "DETERMINACION")
+  
   # Agrupar y contar
   conteo <- data_largo %>%
     group_by(across(all_of(agrupadores))) %>%
     summarise(
-      Detectable = sum(str_detect(Resultado, regex("Detectable|Positivo", ignore_case = TRUE)), na.rm = TRUE),
-      No_detectable = sum(str_detect(Resultado, regex("No detectable|Negativo", ignore_case = TRUE)), na.rm = TRUE),
+      Detectable = sum(str_to_lower(Resultado) %in% c("detectable", "positivo"), na.rm = TRUE),
+      No_detectable = sum(str_to_lower(Resultado) %in% c("no detectable", "negativo"), na.rm = TRUE),
       .groups = "drop"
     ) %>%
     mutate(Total_testeos = Detectable + No_detectable)
+  
   return(conteo)
 }
 
 
 
 
+################################################################
+#-------APLICAR FUNCION   (no modificar nombres)----------------
+################################################################
+
+
+# aplico la fn algoritmo
+
+resultado_algoritmo_1 <- algoritmo_1(data = VR_NOMINAL,
+                                     col_signos = "SIGNO_SINTOMA",
+                                     col_comorbilidades = "COMORBILIDAD",
+                                     col_determinacion= "DETERMINACION", 
+                                     col_resultado= "RESULTADO",
+                                     col_tipo_lugar =  "TIPO_LUGAR_OCURRENCIA",
+                                     col_antecedente = "ANTECEDENTE_EPIDEMIOLOGICO",
+                                     col_cobertura_social = "COBERTURA_SOCIAL"
+)
+
+
+
+# extrae el dataframe procesado
+VRNOMINAL_EVENTOCASO <-resultado_algoritmo_1$data
+
+# genera mensaje para comprobar que se realizó la transformación
+mensaje5 <- resultado_algoritmo_1$mensaje_revision
+
+
+# Confirmar que los registros unicos en VR_NOMINAL tienen los mismos registros que VRNOMINAL_EVENTOCASO
+n_distinct(VR_NOMINAL$IDEVENTOCASO)
+
+
+
+#################  SECCIÓN 2:    ANÁLISIS  ######################################
+
+
+#======================================================================
+#------------- ANÁLISIS POR DETERMINACIÓN -----------------------------
+#======================================================================
+
+
+#---------------------------------------------------------------------
+#-------- SE CONSTRUYE DETERMINACIÓN DICOTÓMICA ----------------------
+#---------------------------------------------------------------------
+
+#crea una columna que se aplique 1 cuando es positivo
+VRNOMINAL_EVENTOCASO<- VRNOMINAL_EVENTOCASO%>%
+  mutate(
+    DETERMINACION_DICO = case_when(
+      DETERMINACION_SIN_DATO == 1 ~ "99",  # Si DETERMINACION_NINGUNA es 1, asignar 99
+      rowSums(across(starts_with("DETERMINACION_"), 
+                     ~  str_to_lower(.) %in% c("positivo", "detectable"))) > 0 ~ "1",  # Si hay al menos un Positivo o Detectable, asignar 1
+      rowSums(across(starts_with("DETERMINACION_"), 
+                     ~ str_to_lower(.) %in% c("negativo", "no detectable"))) > 0 ~ "0",  # Si solo hay Negativo o No detectable, asignar 0
+      TRUE ~ "99"  # Si no hay información, asignar NA
+    )
+  )
+
+
+
+#---------------------------------------------------------------------
+#-------- SE CONSTRUYE DETERMINACIÓN DICOTÓMICA CENTINELA--------------
+#---------------------------------------------------------------------
+
+
+determinacion_UCIRAG <- c(
+  "Genoma viral SARS-CoV-2",
+  "Genoma viral de Influenza B (sin linaje)",
+  "Genoma viral de Influenza A (sin subtipificar)",
+  "Genoma viral de VSR",
+  "Genoma viral de VSR A",
+  "Genoma viral de VSR B",
+  "Genoma viral de Influenza A H3N2",
+  "Genoma viral de Influenza A H1N1pdm",
+  "Genoma viral de Influenza B, linaje Victoria",
+  "Genoma viral de Influenza"
+)
+
+# Paso 1: Verificamos qué columnas de 'columnas_centinela' existen en el dataframe
+columnas_prefijadas <- paste0("DETERMINACION_", determinacion_UCIRAG)
+columnas_existentes <- columnas_prefijadas [columnas_prefijadas %in% colnames(VRNOMINAL_EVENTOCASO)]
+columnas_faltantes <- setdiff(columnas_prefijadas , columnas_existentes)
+
+
+# Paso 2: Generamos el mensaje con las columnas faltantes
+# Quitar prefijo para mostrar nombres limpios
+det_incluidas <- gsub("^DETERMINACION_", "", columnas_existentes)
+det_excluidas <- gsub("^DETERMINACION_", "", columnas_faltantes)
+
+# Convertir a listado entre comillas
+det_incluidas_listado <- paste0('"', det_incluidas, '"', collapse = "\n")
+det_excluidas_listado <- paste0('"', det_excluidas, '"', collapse = ", ")
+
+if (length(columnas_faltantes) > 0) {
+  mensaje8 <- paste0(
+    "Las siguientes determinaciones incluidas para Estrategia Centinela no existen en el dataframe y fueron omitidas.\n",
+    "Es importante revisar que no existan errores de tipeo:\n",
+    paste(det_excluidas_listado, collapse = ", "), "\n\n",
+    "Determinaciones incluidas utilizadas en el análisis:\n",
+    paste(det_incluidas_listado, collapse = ", ")
+  )
+} else {
+  mensaje8 <- paste0(
+    "Todas las determinaciones incluidas para Estrategia de vigilancia Centinela existen en la base de datos original.\n\n",
+    "Determinaciones incluidas para Estrategia de vigilancia Centinela y utilizadas en este análisis:\n",
+    paste(det_incluidas_listado, collapse = ", ")
+  )
+}
+
+
+# Paso 3: Aplicamos el mutate solo con las columnas existentes
+VRNOMINAL_EVENTOCASO<- VRNOMINAL_EVENTOCASO%>%
+  mutate(
+    DETERMINACION_DICO_centinela = case_when(
+      DETERMINACION_SIN_DATO == 1 ~ "99",
+      length(columnas_existentes) > 0 &
+        rowSums(across(all_of(columnas_existentes),
+                       ~ str_to_lower(.) %in% c("positivo", "detectable"))) > 0 ~ "1",
+      length(columnas_existentes) > 0 &
+        rowSums(across(all_of(columnas_existentes),
+                       ~ str_to_lower(.) %in% c("negativo", "no detectable"))) > 0 ~ "0",
+      TRUE ~ "99"
+    )
+  )
+
+
+#---------------------------------------------------------------------
+#--------------------- ANÁLISIS POR IRA-UCI  --------------------------
+#---------------------------------------------------------------------
+
+
+################################################################
+#-------ACCIÓN-------- > VER VARIABLES A EDITAR---------------
+################################################################
+
+# Definir el rango de semanas posibles (de 1 a 52 o 53)
+semanas_posibles <- 1:52  
+
+# Definir el año de análisis y el año de corte
+dia_de_corte_de_datos <- "03-04-2025" # explicar que es en este formato
+
+# Definir cantidad de semanas no incluidas
+num_ultimas_semana_no_incluidas <- 2 
+
+fecha_corte <- dmy(dia_de_corte_de_datos)
+
+anio_corte <- year(fecha_corte)
+
+semana_epi_corte <- epiweek(fecha_corte)
+
+# Estas son las semanas q no se incluyen en caso que se elija el anio actual
+ultima_semana_valida <- semana_epi_corte - num_ultimas_semana_no_incluidas
+
+# definir año de análisis
+anio_de_analisis <- 2024 
+
+
+
+
+# Filtrar la base de datos
+IRA_UCI <- VRNOMINAL_EVENTOCASO%>%
+  filter(EVENTO == "Unidad Centinela de Infección Respiratoria Aguda Grave (UC-IRAG)") %>%
+  filter(AÑO == anio_de_analisis | AÑO == anio_de_analisis - 1) %>%
+  filter((AÑO < anio_corte) | (AÑO == anio_corte & SEPI_ <= ultima_semana_valida)) %>%
+  mutate(
+    DIAS_TOTALES_INTERNACION = as.numeric(FECHA_ALTA_MEDICA - FECHA_INTERNACION),
+    DIAS_INTERNACION_UTI = as.numeric(coalesce(FECHA_ALTA_MEDICA, FECHA_FALLECIMIENTO) - FECHA_CUI_INTENSIVOS)
+  )
+
+
+# Generar la tabla de casos por semana y determinar la cantidad de casos
+casos_sepi_graf1 <- IRA_UCI %>%
+  filter(DETERMINACION_DICO %in% c("0", "1", "99")) %>%
+  filter(AÑO %in% c(anio_de_analisis, anio_de_analisis - 1)) %>%
+  group_by(SEPI_, AÑO, DETERMINACION_DICO) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(DETERMINACION_DICO = recode_factor(
+    DETERMINACION_DICO, `1` = "Detectable", `0` = "No detectable", `99` = "Sin datos"
+  )) %>%
+  pivot_wider(names_from = DETERMINACION_DICO, values_from = n, values_fill = 0)
+
+
+
+# Completar las semanas vacías y asignar el AÑO correspondiente
+casos_sepi_completo <- casos_sepi_graf1 %>%
+  complete(SEPI_ = semanas_posibles, fill = list(`Detectable` = 0, `No detectable` = 0, `Sin datos` = 0)) %>%
+  mutate(
+    AÑO = ifelse(is.na(AÑO), anio_de_analisis, AÑO),  # Asignar el AÑO a las semanas vacías
+    SEPI_ = factor(SEPI_, levels = semanas_posibles)  # Asegurar que las semanas estén ordenadas
+  ) %>%
+  arrange(AÑO, SEPI_)  # Ordenar por AÑO y SEPI_
+
+
+# Crear la etiqueta combinada para el eje X con semana y año
+casos_sepi_completo <- casos_sepi_completo %>%
+  mutate(sepi_label = paste0(AÑO, " - SE ", SEPI_))
+
+
+#---------------------------------------------------------------------
+#--------------------- GRÁFICO IRA_UCI  ------------------------------
+#---------------------------------------------------------------------
+
+# Gráfico de columnas apiladas
+grafico_ira <- highchart() %>%
+  hc_chart(type = "column") %>%
+  hc_xAxis(
+    categories = casos_sepi_completo$sepi_label,
+    title = list(text = "Semana Epidemiológica"),
+    labels = list(rotation = 90)  # Gira etiquetas si hay muchas
+  ) %>%
+  hc_yAxis(title = list(text = "Número de Casos")) %>%
+  hc_plotOptions(column = list(stacking = "normal")) %>%
+  hc_add_series(name = "Sin datos", data = casos_sepi_completo$`Sin datos`, color = "#7f7f7f") %>%
+  hc_add_series(name = "No detectable", data = casos_sepi_completo$`No detectable`, color = "#1f77b4") %>%
+  hc_add_series(name = "Detectable", data = casos_sepi_completo$Detectable, color = "#ff7f0e")
+
+grafico_ira
+
+
+##############################################
+
+
+
+
+### TABLA DE CASOS POR DICO CENTINELA ###
+casos_gru_edad_graf <- IRA_UCI %>%
+  filter(DETERMINACION_DICO %in% c("0", "1", "99")) %>%
+  filter(AÑO %in% c(anio_de_analisis)) %>%
+  group_by(GRUPO_ETARIO2, AÑO, DETERMINACION_DICO) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(DETERMINACION_DICO = recode_factor(
+    DETERMINACION_DICO, `1` = "Detectable", `0` = "No detectable", `99` = "Sin datos"
+  )) %>%
+  pivot_wider(names_from = DETERMINACION_DICO, values_from = n, values_fill = 0)
+
+
+
+
+#==================================================================
+#-------------------- ANÁLISIS POR VIRUS -------------------------
+#==================================================================
+
+
+
+################################################################
+#-------ACCIÓN-------- > CLASIFICACIÓN DE VIRUS---------------
+################################################################
+
+## Creo la clasificacion de virus 
+
+clasificar_virus <- function(x) {
+  case_when(
+    str_detect(x, "VSR") ~ "VSR",
+    str_detect(x, "SARS") ~ "SARS-CoV-2",
+    str_detect(x, "Influenza A") ~ "Influenza A",
+    str_detect(x, "Influenza B") ~ "Influenza B",
+    str_detect(x, "Metaneumovirus") ~ "Metaneumovirus",
+    str_detect(x, "Parainfluenza") ~ "Parainfluenza",
+    str_detect(x, "Rinovirus") ~ "Rinovirus",
+    str_detect(x, "Adenovirus") ~ "Adenovirus",
+    is.na(x) | x == "" ~ "Sin determinación",
+    TRUE ~ "Otro"
+  )
+}
+
+
+
+## Identifico cuales son las columnas de deteminaciones, en este caso las que comienzan con "_DETERMINACION"
+columnas_determinacion <- names(CHUBUT_EVENTOCASO) %>%
+  str_subset("^DETERMINACION_") %>%
+  setdiff(c("DETERMINACION_DICO",
+            "DETERMINACION_DICO_CENTINELA",
+            "DETERMINACION_SIN_DATO"))
+
+
+
+## Aplico la funcion 
+resultado <- analizar_determinaciones(
+  data = CHUBUT_EVENTOCASO, # Dataset tranformado
+  columnas_determinacion = columnas_determinacion,# columnas determinacion creado arriba
+  variable_agrupar = "SEPI_APERTURA",# variables de agrupacion principal
+  variable_cruce = "ANIO_EPI_APERTURA",# variables de agrupacion secundaria (opciona)
+  clasificar = clasificar_virus # Clasificacion de virus  arriba, opcional. 
+)
+
+
+
+
+#---------------------------------------------------------------------
+#--------------------- GRÁFICO POR VIRUS -----------------------------
+#---------------------------------------------------------------------
+
+
+
+# Primero transformamos a formato largo para poder graficar detectables y no detectables juntos
+resultado_influenza <- resultado %>%
+  filter(DETERMINACION == "Influenza A") %>%
+  pivot_longer(cols = c("Detectable", "No_detectable"), 
+               names_to = "Tipo_Resultado", 
+               values_to = "n") %>%
+  mutate(Tipo_Resultado = factor(Tipo_Resultado, levels = c("No_detectable", "Detectable")))
+
+
+# Gráfico
+grafico_influenza <- ggplot(resultado_influenza, aes(x = as.numeric(SEPI_APERTURA), y = n, fill = Tipo_Resultado)) +
+  geom_col(position = "stack") +
+  facet_wrap(~ ANIO_EPI_APERTURA) +
+  scale_fill_manual(
+    values = c(
+      "No_detectable" = "#A9A9A9",  # gris
+      "Detectable" = "#D7263D"      # rojo
+    ),
+    name = "Resultado"
+  ) +
+  labs(
+    title = "Detección de Influenza A por semana y año",
+    x = "Semana epidemiológica",
+    y = "Número de testeos",
+    fill = "Resultado"
+  ) +
+  theme_minimal()+
+  theme(
+    legend.position = "bottom"
+  )
+
+grafico_influenza
+
+
+
+
+write.csv(VRNOMINAL_EVENTOCASO, "chequeo_VR.csv", row.names = FALSE)
