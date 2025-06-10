@@ -10,7 +10,7 @@
     group_by(SEMANA, ANIO) %>%  
     summarise(total_cantidad = sum(CANTIDAD), .groups = "drop") %>%  # Suma la columna cantidad, ignorando NA
     arrange(ANIO, SEMANA) %>% 
-    mutate(SE_ANIO = paste(ANIO, SEMANA, sep = "-")) %>%  # Crear la variable como texto: "ANIO-SEMANA"
+    mutate(SE_ANIO = paste(SEMANA, ANIO, sep = "-")) %>%  # Crear la variable como texto: "ANIO-SEMANA"
     mutate(SE_ANIO = factor(SE_ANIO, levels = unique(SE_ANIO))) %>%   # Convertir a factor, asegurando el orden cronológico
     tidyr::complete(SEMANA = 1:max(SEMANA, na.rm = TRUE), fill = list(Total = 0)) 
   

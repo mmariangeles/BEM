@@ -1,3 +1,7 @@
+#qué hay en este script?#
+#Esto es para un gráfico de los 3 eventos juntos según grupo de edad y para texto automatizado
+
+
 # Cambiar nombres de los grupos de edad
 agrupada <- agrupada %>% 
   mutate(
@@ -15,9 +19,7 @@ agrupada <- agrupada %>%
       GRUPO == "45 a 64" ~ "45 a 64 años",
       GRUPO == "65 a 74" ~ "65 a 74 años",
       GRUPO == ">= a 75" ~ "75 años y más",
-      TRUE ~ GRUPO
-    )
-  )
+      TRUE ~ GRUPO))
 
 # Filtrar eventos respiratorios
 respi_agrupada <- agrupada %>% 
@@ -36,8 +38,7 @@ cant_NAC_BQL_ETI <- sum(grupo_edad_NAC_BQL_ETI$Total, na.rm = TRUE)
 orden_edades_NAC_BQL_ETI <- c(
   "Menor a 6 meses", "6 a 11 meses", "12 a 23 meses", "2 a 4 años", "5 a 9 años",
   "10 a 14 años", "15 a 19 años", "20 a 24 años", "25 a 34 años", "35 a 44 años",
-  "45 a 64 años", "65 a 74 años", "75 años y más"
-)
+  "45 a 64 años", "65 a 74 años", "75 años y más")
 
 grupo_edad_NAC_BQL_ETI <- grupo_edad_NAC_BQL_ETI %>%
   mutate(GRUPO_2 = factor(GRUPO_2, levels = orden_edades_NAC_BQL_ETI))
@@ -76,6 +77,16 @@ BQL_ETI_NAC_grafico_grupoetario3 <- grupo_edad_NAC_BQL_ETI %>%
     axis.line = element_blank(),
     axis.ticks = element_blank(),
     legend.position = "top")
+
+
+############################################################################
+########### objetos para automatizacion de textos ##########################
+############################################################################
+
+
+#uso de slicemax
+#La función slice_max() en dplyr se utiliza para seleccionar las filas con los valores máximos de una o más variables dentro de un dataframe o tibble.
+help("slice_max") #para estudiar
 
 # --- ETI ----
 ETI_gruposedad <- respi_agrupada %>% 
@@ -118,8 +129,7 @@ NAC_gruposedad <- respi_agrupada %>%
   summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>%  
   mutate(
     Porcentaje_crudo = Total / sum(Total),
-    Porcentaje = round(Porcentaje_crudo * 100)
-  )
+    Porcentaje = round(Porcentaje_crudo * 100))
 
 NAC_cantidad <- sum(NAC_gruposedad$Total)
 
@@ -153,8 +163,7 @@ BQL_gruposedad <- respi_agrupada %>%
   summarize(Total = sum(CANTIDAD, na.rm = TRUE), .groups = "drop") %>%  
   mutate(
     Porcentaje_crudo = Total / sum(Total),
-    Porcentaje = round(Porcentaje_crudo * 100)
-  )
+    Porcentaje = round(Porcentaje_crudo * 100))
 
 BQL_cantidad <- sum(BQL_gruposedad$Total)
 

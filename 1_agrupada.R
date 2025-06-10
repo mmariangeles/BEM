@@ -16,54 +16,73 @@ sum(complete.cases(agrupada_vieja))
 agrupada_vieja <- agrupada_vieja %>%
   filter(ANIO < 2024 )
 
-
-#preparacion de base agrupada actual----
-{
+###################################################################
+##############cargo base agrupada actual###########################
+###################################################################
   
-  #lectura de base y chequeo de formato dataframe
-  agrupada <- read.csv("NEUQUEN_CLI.csv", sep = ";",na.strings = "")
+##cargo base agrupada actual###
+  agrupada <- fread("CLI_P58_[2025-06-09].csv", sep = ";",
+                    encoding = "Latin-1",
+                    na.strings = c("", "*SIN DATO* (*SIN DATO*)", "*sin dato*", "sin dato", "SIN DATO"))
   sum(complete.cases(agrupada))
   
-  nrow(agrupada)
+  nrow(agrupada) #es un chequeo 
   
-#junto las bases
+  
+  
+##########################################################################
+######### junto base agrupada vieja con actual ###########################
+##########################################################################
+  
+#Esto no es un cruce, sino que pongo una arriba de la otra. Distinto a join/left join/full join, etc.
   
 agrupada<- bind_rows(agrupada_vieja, agrupada) 
   
+
+######################################################################
+###### agrego columna region #########################################
+######################################################################
   
-  #selecciono hasta la SE de mi BEM
-  agrupada <- agrupada %>%
-    filter(ANIO < 2025 | (ANIO == 2025 & SEMANA <= 13))
-  
-  
-  #agrego columna region----
-  #lectura de la base 
+#cargo base de regiones 
   regiones <- read_excel("REGIONES.xlsx")
   regiones <- as.data.frame(regiones) #cambio formato a dataframe
   
-  #regiones_duplicadas <- regiones %>% #esto lo hago porque habia duplicados que agregaban observaciones a "agrupadas"
-  # group_by(LOCALIDAD) %>%
-  # filter(n() > 1)
-  
-  #regiones <- regiones%>%
-  #  distinct(LOCALIDAD, .keep_all = TRUE)
   
   #agrego la columna regiones e ID regiones a agrupadas
   agrupada <- agrupada %>%
-    left_join(regiones, by = "ID_ORIGEN")
+    left_join(regiones, by = "ID_ORIGEN")  
   
-}
 
+  help("left_join") #para estudiar 
+    
+########################################################################
+################### Seteo de base agrupada #############################
+########################################################################
+  
+##SE/año del BEM
+#las SE/año del BEM de este mes son   (esto es un ayuda memoria) del año  #SE maxima
+  SE_BEM <- c(18, 19, 20, 21,22) #hay que cambiarlo mensualmente
+  SE_BEM <- as.vector(SE_BEM) 
+  
+#armo un objeto numerico con mi semana máxima 
+  SE_BEM_MAX <- max(SE_BEM)
+     
+#selecciono hasta la SE de mi BEM. Estas líneas filtra:
+  #que "ANIO" sea menor a 2025 (serían todas las SE de los años menores a 2025), 
+  #que de 2025 filtre hasta la SE máxima de la actualización del BEM
+  agrupada <- agrupada %>%
+    filter(ANIO < 2025 | (ANIO == 2025 & SEMANA <= SE_BEM_MAX)) 
+  
+#############################################################################
+############# creación de SE-año, año máx/min, año anterior##################
+#############################################################################
 
 #columna se-año, SE MAX, MIN----
-{#armo la variable SE-año
+#armo la variable SE-año
   agrupada <- agrupada %>%
     mutate(SE_ANIO= paste(SEMANA, ANIO, sep = "-"))
   
-  ##SE/año del BEM
-  #las SE/año del BEM de este mes son   (esto es un ayuda memoria) del año  #SE maxima
-  SE_BEM <- c(10, 11, 12, 13) #hay que cambiarlo mensualmente
-  SE_BEM <- as.vector(SE_BEM)
+ 
   
   #ANIO maximo (lo voy a usar para tablas, gráficos)
   ANIO_max <- agrupada %>% 
@@ -82,7 +101,7 @@ agrupada<- bind_rows(agrupada_vieja, agrupada)
   #AÑO ANTERIOR AL ACTUAL PARA VARIACION %
   anio_anterior <- ANIO_max-1
     
-    }
+
 
 
 
