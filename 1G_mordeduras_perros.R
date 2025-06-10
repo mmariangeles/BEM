@@ -1,10 +1,9 @@
-#filtrado de base agrupada con ID evento-------
-  
+#filtrado de base agrupada con ID evento####
   mordedura_perro <- agrupada %>% 
     filter(ID_SNVS_EVENTO_AGRP %in% c(341, 507, 508, 509, 512))
   
 
-#tabla mordedura evolutivo------- 
+#tabla mordedura evolutivo####
   
   mordeduras_evolutivo <- mordedura_perro %>%
     group_by(SEMANA, ANIO) %>%  

@@ -1,4 +1,4 @@
-#objetivos de este .R Es util para la base agrupada
+#objetivos:
 #a)cargar dataset
 #b)crear objetos SE BEM, AÑO MAX, AÑO MIN
 #c)agregar columnas regiones 

@@ -198,5 +198,3 @@ BQL_grupoedad_min_cantidad <- BQL_gruposedad %>%
 
 
 
-
-

@@ -1,4 +1,4 @@
-#Filtrado agrupada ID bql-----
+#Filtrado agrupada ID bql###
 
 BQL <- agrupada %>% 
   filter(ID_SNVS_EVENTO_AGRP %in% c(7,443))

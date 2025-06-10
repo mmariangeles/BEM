@@ -1,4 +1,4 @@
-#Filtrado de agrupada con ID inmunoprevenibles----
+#Filtrado de agrupada con ID inmunoprevenibles####
 IP <- agrupada %>% 
   filter(IDEVENTOAGRUPADO==5)
 

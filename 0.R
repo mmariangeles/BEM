@@ -1,5 +1,3 @@
-#esto es un .R que tiene como objetivo realizar source con otros. 
-
 #librerias
 library(readr)
 library(tidyverse)

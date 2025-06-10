@@ -1,4 +1,3 @@
-
 #DIARREAS----
 diarreas <- agrupada %>% 
   filter(ID_SNVS_EVENTO_AGRP==11)
