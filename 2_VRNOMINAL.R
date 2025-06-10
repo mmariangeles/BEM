@@ -13,8 +13,6 @@ library(ggplot2)       # Para la visualización
 library(readxl)        # para lectura de datos en excel
 library(readr)         # para lectura de datos 
 library(lubridate)     # para trabajo con fechas
-library(highcharter)   # Pra gráficos interactivos
-
 
 
 ################################################################
@@ -25,7 +23,7 @@ library(highcharter)   # Pra gráficos interactivos
 
 # Impotación de NQN VR nominal
 
-VR_NOMINAL <- fread("VR_NOMINAL_Neuquen.csv",
+VR_NOMINAL <- fread("NOM_P58_VR_[2025-06-09].csv",
   sep = ";",
   encoding = "Latin-1",
   na.strings = c("", "*SIN DATO* (*SIN DATO*)", "*sin dato*", "sin dato", "SIN DATO"))

@@ -33,10 +33,16 @@ agrupada_vieja <- agrupada_vieja %>%
 ##########################################################################
 ######### junto base agrupada vieja con actual ###########################
 ##########################################################################
+#primero fuerzo a que las columnas de ambas bases (agrupada y agrupada vieja) 
+  #tengan el mismo formato. Sin esto, no se puede usar bind_rowns
+  agrupada_vieja <- agrupada_vieja |> mutate(across(everything(), as.character))
+  agrupada <- agrupada |> mutate(across(everything(), as.character))
   
-#Esto no es un cruce, sino que pongo una arriba de la otra. Distinto a join/left join/full join, etc.
-  
-agrupada<- bind_rows(agrupada_vieja, agrupada) 
+ 
+help("bind_rows") 
+
+  #Esto no es un cruce, sino que pongo una arriba de la otra. Distinto a join/left join/full join, etc.
+   agrupada <- bind_rows(agrupada_vieja, agrupada)
   
 
 ######################################################################
@@ -47,7 +53,10 @@ agrupada<- bind_rows(agrupada_vieja, agrupada)
   regiones <- read_excel("REGIONES.xlsx")
   regiones <- as.data.frame(regiones) #cambio formato a dataframe
   
-  
+#ID_origen con formato character ambas, para poder cruzar
+  agrupada <- agrupada |> mutate(ID_ORIGEN = as.character(ID_ORIGEN))
+  regiones <- regiones |> mutate(ID_ORIGEN = as.character(ID_ORIGEN))
+    
   #agrego la columna regiones e ID regiones a agrupadas
   agrupada <- agrupada %>%
     left_join(regiones, by = "ID_ORIGEN")  
@@ -102,11 +111,12 @@ agrupada<- bind_rows(agrupada_vieja, agrupada)
   anio_anterior <- ANIO_max-1
     
 
+ agrupada <- agrupada %>%
+    mutate(CANTIDAD = as.numeric(CANTIDAD))
 
+agrupada <- agrupada %>% 
+  mutate(SEMANA = as.numeric(SEMANA))
 
-
-
-
-
-
+agrupada <- agrupada %>% 
+  mutate(ANIO=as.numeric(ANIO))
 

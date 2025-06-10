@@ -4,7 +4,8 @@ VRNOMINAL_EVENTOCASO2 <- as.data.frame(VRNOMINAL_EVENTOCASO)
 
 # Filtrar los casos positivos (determinacion_dico==1)
 VRNOMINAL_EVENTOCASO2 <- as.data.frame(VRNOMINAL_EVENTOCASO) %>% 
-  filter(DETERMINACION_DICO == 1)
+  filter(DETERMINACION_DICO == 1) %>% 
+  filter(AÑO >= 2024)
 
 
 #filtro segun SE y año del BEM
@@ -229,6 +230,7 @@ grafico_influenza
 
 # positividad semanal
 positividad_semanal <- VRNOMINAL_EVENTOCASO %>%
+  filter(AÑO >= 2024) %>%
   select(AÑO, IDEVENTOCASO, SEPI_, starts_with("DETERMINACION_")) %>%
   pivot_longer(
     cols = starts_with("DETERMINACION_"),

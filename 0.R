@@ -13,6 +13,7 @@ library(gridExtra)
 library(treemapify)
 #install.packages("ggtext") #CORRERLO EN LA CONSOLA
 library(ggtext)
+library(data.table)
 
 
 #cargo las fuentes instaladas en mi sistema para poder utilizar la del ministerio---------
