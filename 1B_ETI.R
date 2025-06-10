@@ -112,8 +112,8 @@ ETI_grafico_grupoetario_acumulado <- ETI_tabla_grupoetario_acumulado %>%
   theme_classic() +
   theme(
     axis.text.x = element_text(size = 25, angle = 90, hjust = 1),  # Rotar etiquetas en X
-    axis.text.y = element_text(size = 25),  # Fuente para los textos del eje Y
-    axis.title.x = element_text(size = 25),
+    axis.text.y = element_text(size = 20),  # Fuente para los textos del eje Y
+    axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 25),
     strip.text = element_text(size = 25),
     legend.text = element_text(size = 25),       # Tamaño de las etiquetas de la leyenda

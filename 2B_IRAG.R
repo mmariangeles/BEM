@@ -105,6 +105,7 @@ internado_fallec_COVID_IRAG <- internado_fallec_COVID_IRAG %>%
   mutate(
     GRUPO_ETARIO_2 = case_when(
       GRUPO_ETARIO == "Neonato (hasta 28 días)"~"Menor a un año",
+      GRUPO_ETARIO == "Neonato (hasta 28 dÍas)"~"Menor a un año",
       GRUPO_ETARIO == "Posneonato (29 hasta 365 dÍas)"~"Menor a un año",
       GRUPO_ETARIO == "De 13 a 24 meses" ~ "13 a 24 meses",
       GRUPO_ETARIO == "De 2 a 4 años"~"2 a 4 años",
@@ -136,29 +137,6 @@ internado_fallec_COVID_IRAG <- internado_fallec_COVID_IRAG %>%
   mutate(GRUPO_ETARIO_2 = factor(GRUPO_ETARIO_2, levels = orden_edades))
 
 
-#grafico grupo de edad 
-
-VR_grafico_grupoetario3 <- internado_fallec_COVID_IRAG %>% 
-  ggplot(aes(x=casos, y=GRUPO_ETARIO_2))+
-  geom_bar(stat = "identity", width = 0.5)+
-  facet_wrap(~EVENTO)+
-  labs(
-    x = "Casos notificados",
-    y = "Grupos de edad") +
-  scale_x_continuous(breaks = seq(0, max(internado_fallec_COVID_IRAG$casos))) +
-  theme_classic () +
-  theme(
-    axis.text.x = element_text(size = 6),
-    axis.text.y = element_text(size = 6), 
-    axis.title.x = element_text(size = 6),  # Cambia el tamaño del título del eje X
-    axis.title.y = element_text(size = 6),# Fuente para los textos del eje Y
-    panel.border = element_blank(),  # Eliminar borde del panel
-    axis.line = element_blank(),  # Eliminar líneas de los ejes
-    axis.ticks = element_blank())  # Eliminar "guioncito" de los ejes
-
-VR_grafico_grupoetario3
-
-
 #ambos eventos en la misma barra   
 
 VR_grafico_grupoetario4 <- internado_fallec_COVID_IRAG %>% 
@@ -169,12 +147,15 @@ VR_grafico_grupoetario4 <- internado_fallec_COVID_IRAG %>%
       "Internado y/o fallecido por COVID o IRA" = "#4DC86D",
       "Unidad Centinela de Infección Respiratoria Aguda Grave (UC-IRAG)" = "#F2E23C"),
     labels = c(
-      "Internado y/o fallecido por COVID o IRA",
-      "UC-IRAG" )) +
-  labs(
+      "Internado y/o fallecido por COVID o IRA" = "Internado y/o fallecido por COVID o IRA",
+      "Unidad Centinela de Infección Respiratoria Aguda Grave (UC-IRAG)" = "UC-IRAG")) +
+  scale_x_continuous(
+    breaks = scales::pretty_breaks(),
+    labels = scales::label_number(accuracy = 1)) +
+    labs(
     x = "Casos notificados",
     y = "Grupos de edad",
-    fill = "Evento" ) +
+    fill = NULL ) +
   theme_classic() +
   theme(
     axis.text.x = element_text(size = 25),
@@ -192,9 +173,14 @@ VR_grafico_grupoetario4 <- internado_fallec_COVID_IRAG %>%
 VR_grafico_grupoetario4
 
 
-#automatizacion de textos-----
+#############################################################################
+########################automatizacion de texto #############################
+#############################################################################
 
-#objeto edades para covid-IRA------
+library(dplyr)
+library(lubridate)
+
+# Objeto edades para COVID-IRA
 edades_COVID_IRA <- VR_NOMINAL_SINDUPLICADOS %>%
   filter(AÑO == AÑO_BEM_IRAG,
          SEPI_ == SE_BEM_IRAG,
@@ -206,39 +192,54 @@ edades_COVID_IRA <- VR_NOMINAL_SINDUPLICADOS %>%
     FIS = as.Date(FECHA_APERTURA),
     edad_meses = time_length(interval(FECHA_NACIMIENTO, FECHA_APERTURA), "months"),
     edad_calculada_label = case_when(
-      edad_meses < 1 ~ "0 meses",
+      edad_meses < 1 ~ "menor a un mes",
       edad_meses < 12 ~ paste0(round(edad_meses), " meses"),
-      TRUE ~ paste0(floor(edad_meses / 12), " años")))
+      TRUE ~ paste0(floor(edad_meses / 12), " años")
+    )
+  )
 
-# Extraer los valores numéricos de edad (en meses o años)
+# Extraer valores numéricos de edad (en meses)
 edades_numericas <- edades_COVID_IRA %>%
   mutate(edad_numerica = case_when(
+    edad_calculada_label == "menor a un mes" ~ 0,
     grepl("meses", edad_calculada_label) ~ as.numeric(gsub(" meses", "", edad_calculada_label)),
     grepl("años", edad_calculada_label) ~ as.numeric(gsub(" años", "", edad_calculada_label)) * 12
   ))
 
-# Verificar si hay alguna etiqueta con "meses"
-hay_meses <- any(grepl("meses", edades_numericas$edad_calculada_label))
+# Verificar si hay alguna etiqueta con meses o menor a un mes
+hay_meses <- any(grepl("meses", edades_numericas$edad_calculada_label) | edades_numericas$edad_calculada_label == "menor a un mes")
 
-# Crear el objeto 'edad_min_covid_ira' con el valor de la edad mínima en formato texto
-if (hay_meses) {
-  edad_min_covid_ira <- paste(min(edades_numericas$edad_numerica[grepl("meses", edades_numericas$edad_calculada_label)], na.rm = TRUE), "meses")
+# Edad mínima en texto
+edad_min_covid_ira <- if (hay_meses) {
+  if (0 %in% edades_numericas$edad_numerica) {
+    "menor a un mes"
+  } else {
+    paste(min(edades_numericas$edad_numerica[grepl("meses", edades_numericas$edad_calculada_label)], na.rm = TRUE), "meses")
+  }
 } else {
-  edad_min_covid_ira <- paste(round(min(edades_numericas$edad_numerica / 12, na.rm = TRUE), 2), "años")
+  paste(round(min(edades_numericas$edad_numerica / 12, na.rm = TRUE), 2), "años")
 }
 
-# Mostrar solo el valor del objeto sin texto adicional
+# Edad máxima numérica (en meses)
+edad_max_meses <- max(edades_numericas$edad_numerica, na.rm = TRUE)
+
+# Convertir edad máxima a texto en meses o años
+edad_max_covid_ira <- if (edad_max_meses < 12) {
+  paste(edad_max_meses, "meses")
+} else {
+  paste(floor(edad_max_meses / 12), "años")
+}
+
+# Promedio de edad (en años, según EDAD_ACTUAL)
+edad_promedio_covid_ira <- round(mean(edades_COVID_IRA$EDAD_ACTUAL, na.rm = TRUE))
+
+# Mostrar resultados
 edad_min_covid_ira
+edad_max_covid_ira
+edad_promedio_covid_ira
 
 
-#edad maxima 
-edad_max_covid_ira <- max(edades_COVID_IRA$edad_calculada_label)
 
-# view(edad_max_covid_ira)
-
-#promedio de edad 
-edad_promedio_covid_ira <- round(mean(edades_COVID_IRA$EDAD_ACTUAL, na.rm = TRUE), 1)
-# view(edad_promedio_covid_ira)
 
 
 # objeto edades UC-IRAG----
@@ -253,39 +254,47 @@ edades_UC_IRAG <- VR_NOMINAL_SINDUPLICADOS %>%
     FIS = as.Date(FECHA_APERTURA),
     edad_meses = time_length(interval(FECHA_NACIMIENTO, FECHA_APERTURA), "months"),
     edad_calculada_label = case_when(
-      edad_meses < 1 ~ "0 meses",
+      edad_meses < 1 ~ "menor a un mes",
       edad_meses < 12 ~ paste0(round(edad_meses), " meses"),
       TRUE ~ paste0(floor(edad_meses / 12), " años")))
 
-# Extraer los valores numéricos de edad (en meses o años)
 edades_numericas_UC_IRAG <- edades_UC_IRAG %>%
   mutate(edad_numerica = case_when(
+    edad_calculada_label == "menor a un mes" ~ 0,
     grepl("meses", edad_calculada_label) ~ as.numeric(gsub(" meses", "", edad_calculada_label)),
-    grepl("años", edad_calculada_label) ~ as.numeric(gsub(" años", "", edad_calculada_label)) * 12
-  ))
+    grepl("años", edad_calculada_label) ~ as.numeric(gsub(" años", "", edad_calculada_label)) * 12))
 
-# Verificar si hay alguna etiqueta con "meses"
-hay_meses_UC_IRAG <- any(grepl("meses", edades_numericas_UC_IRAG$edad_calculada_label))
+hay_meses_UC_IRAG <- any(grepl("meses", edades_numericas_UC_IRAG$edad_calculada_label) | edades_numericas_UC_IRAG$edad_calculada_label == "menor a un mes")
 
-# Crear el objeto 'edad_min_covid_ira' con el valor de la edad mínima en formato texto
-if (hay_meses_UC_IRAG) {
-  edad_min_UC_IRAG <- paste(min(edades_numericas_UC_IRAG$edad_numerica[grepl("meses", edades_numericas_UC_IRAG$edad_calculada_label)], na.rm = TRUE), "meses")
+# Edad mínima en texto
+edad_min_UC_IRAG <- if (hay_meses_UC_IRAG) {
+  if (0 %in% edades_numericas_UC_IRAG$edad_numerica) {
+    "menor a un mes"
+  } else {
+    paste(min(edades_numericas_UC_IRAG$edad_numerica[grepl("meses", edades_numericas_UC_IRAG$edad_calculada_label)], na.rm = TRUE), "meses")
+  }
 } else {
-  edad_min_UC_IRAG <- paste(round(min(edades_numericas_UC_IRAG$edad_numerica / 12, na.rm = TRUE), 2), "años")
+  paste(round(min(edades_numericas_UC_IRAG$edad_numerica / 12, na.rm = TRUE), 2), "años")
 }
 
-# Mostrar solo el valor del objeto sin texto adicional
+# Edad máxima numérica (en meses)
+edad_max_meses_UC_IRAG <- max(edades_numericas_UC_IRAG$edad_numerica, na.rm = TRUE)
+
+# Convertir edad máxima a texto en meses o años
+edad_max_UC_IRAG <- if (edad_max_meses_UC_IRAG < 12) {
+  paste(edad_max_meses_UC_IRAG, "meses")
+} else {
+  paste(floor(edad_max_meses_UC_IRAG / 12), "años")
+}
+
+# Promedio de edad (en años, según EDAD_ACTUAL)
+edad_promedio_UC_IRAG <- round(mean(edades_UC_IRAG$EDAD_ACTUAL, na.rm = TRUE))
+
+# Mostrar resultados
 edad_min_UC_IRAG
+edad_max_UC_IRAG
+edad_promedio_UC_IRAG
 
-
-#edad maxima 
-edad_max_UC_IRAG <- max(edades_UC_IRAG$edad_calculada_label)
-
-# view(edad_max_UC_IRAG)
-
-#promedio de edad 
-edad_promedio_UC_IRAG <- round(mean(edades_UC_IRAG$EDAD_ACTUAL, na.rm = TRUE), 1)
-# view(edad_promedio_UC_IRAG)  
   
   
   

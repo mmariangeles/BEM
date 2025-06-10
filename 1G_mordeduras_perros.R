@@ -19,6 +19,7 @@
 #objeto n mordeduras acumulado
   mordeduras_total <- sum(mordeduras_evolutivo$total_cantidad, na.rm = TRUE)
   
+  mordeduras_total <- as.character(mordeduras_total) #lo convierto para el titulo
   
   #objeto n mordeduras SE BEM
  mordeduras_cantidad_SE_BEM <- mordedura_perro %>%
@@ -126,9 +127,9 @@ mordeduras_treemap
       y = "Casos de mordeduras de perros") +
     theme_classic() +
     theme(
-      axis.title = element_text(size = 40),
-      axis.text.x = element_text(size = 35, angle = 90, hjust = 1),
-      axis.text.y = element_text(size = 35),
+      axis.title = element_text(size = 25),
+      axis.text.x = element_text(size = 25, angle = 90, hjust = 1),
+      axis.text.y = element_text(size = 25),
       panel.border = element_blank(),
       axis.line = element_blank(),
       axis.ticks = element_blank())
